@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <omnetpp.h>
+#include <string>
 #include "sdn_message_m.h"
 
 using namespace omnetpp;
+using namespace std;
 
 class sdn_switch : public cSimpleModule
 {
@@ -27,11 +29,19 @@ class sdn_switch : public cSimpleModule
 
 Define_Module(sdn_switch);
 
+bool cmp(string a, string b) {
+    return a == b;
+}
+
 void sdn_switch::initialize()
 {
     arrivalSignal = registerSignal("arrival");
+    int id = getIndex();
+    int numberOfGate = gateSize("gate");
+    EV << "This is node of " << id << " and it has " << numberOfGate << " gates with the name of " << getName() << "\n";
+
     // Module 0 sends the first message
-    if (getIndex() == 0) {
+    if (getIndex() == 0 && cmp(getName(), "switches")) {
         // Boot the process scheduling the initial message as a self-message.
         sdn_message *msg = generateMessage();
         scheduleAt(0.0, msg);

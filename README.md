@@ -1,25 +1,73 @@
-# 实验一 网络拓扑结构的搭建
+# Experiment 1 - Topology Structure of Network
 
-## 实验目标
+## Goal
 
-使用参数设置网络的拓扑结构，设置的网络结构如下
+This is the network topology structure designed by "parameter". 
 
 ![](SDN.png)
 
-需要注意的是，这个网络完全是我yy出来的。。。因为这篇论文并没有给出一个明确的具有三层结构的网络
+It should be noticed that I design this network from nowhere... Because I can't find a specific SDN topology structure with three layers in paper. At the same time, because my coding ability is not so good yet, I set few nodes for future debugging. 
 
-同时因为目前自己RL的编程能力比较弱，因此其中的结点设置的数量较少，是为了方便将来的调试
+## Problem
 
-在搭建的时候使用了trick: **参数**简化代码
+If there exits blank in project's name, programm won't be compiled successfully. 
 
-## 问题
+# Experiment 2 - Design simples for switches
 
-如果项目名称中含有空格，将会编译不通过。。
+It is neccessary to make use of the following statement carefully to get a good design
 
-# 实验二 实现简单的信息传送
+* input gate;
+* output gate;
+* inout gate;
 
-编写一个随机路由协议的信息传递
+And the methods below is important 
 
-# 实验三 实现SDN管理协议
+* gateSize("gate");
 
-为每个controller编写simple，实现具体的功能
+  count the number of two-way channel
+
+* send(msg, "gate$o", k);
+
+  send the message to k-th channel
+
+* getIndex()
+
+* getName()
+
+## Simples
+
+### Switch
+
+There exists two directions for message to send: one for peer swithes, another for sending message to slave controller, which can be implemented in method `forwardMessage(cMessage*)`. 
+
+It should be noticed that the link between peer switches are `inout gate[];`, whereas the link to slave controller is `output slave[];`, the link to domain controller is `output domain[];`. 
+
+### Slave controller
+
+Receive information about network state from switches and transfer it ro domain controller. 
+
+* Information in salve controller should be updated whenever there's change in network. 
+
+  So there should exists `input in[];` to receive information from switches. 
+
+* Domain controller get the network state from slave swtiches whenever neccessary, so the link between them should be two-way link. Domain controller inform the slave controller to send the information, and then slave controller send it. 
+
+  So there should exists `inout gate[];` in slave controller. 
+
+### Domain controller
+
+* From what is discussed above, it should have `inout gate[]` to link with slave controllers.
+
+* If the source node and destination node are not in a same subnet, then it should deliver the message to transport to super controller. What's more, when neccessary, it should send the network state information to super controller when the situation above happen. This should happen when the super inform it. 
+
+  After super controller get the work done, it will send the forward table to domain controller.
+
+  Everything above makes `inout gate[];` neccessary. 
+
+### Super controller
+
+The interaction with domain controller is clear above, which makes `inout gate[];` neccessary. 
+
+## Problem
+
+I don't know the function to compare two strings, while compilor tells me to use `strncmp` but it didn't work. So I code it myself. 
