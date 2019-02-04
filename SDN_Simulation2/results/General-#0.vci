@@ -1,0 +1,24 @@
+file 503 1549263332                                             
+version 2
+run General-0-20190204-14:42:12-61431
+attr configname General
+attr datetime 20190204-14:42:12
+attr experiment General
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsf ""
+attr measurement ""
+attr network sdn_network
+attr processid 61431
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+vector 0 sdn_network.switches[6] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+0	490 12 20 20 1.9 1.9 1 19 19 19 361
+

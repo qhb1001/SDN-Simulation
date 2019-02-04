@@ -21,7 +21,39 @@ simple sdn_switch
 
         @display("i=block/routing");
     gates:
-        inout gate[]; 
+        inout gate[];
+        output slave[];
+        output domain[];
+}
+
+simple slave_controller 
+{
+    parameters:
+		@display("i=block/routing");
+		
+	gates:
+	    input in[];
+	    inout gate[];
+}
+
+simple domain_controller 
+{
+	parameters:
+		@display("i=block/routing");
+		
+	gates:
+	    inout slave[];
+	    inout super[];
+	    input in[];
+}
+
+simple super_controller 
+{
+	parameters:
+		@display("i=block/routing");
+	
+	gates:
+	    inout gate[];
 }
 
 network sdn_network 
@@ -33,12 +65,12 @@ network sdn_network
         
 	submodules:
 	    switches[13] : sdn_switch;
-	    slave[4] : sdn_switch; 
+	    slave[4] : slave_controller; 
 	    // 将来需要为每个类型的交换机设置一个simple
 	    // 并且其中管道的类型也需要重新定义，具体到方向
 	    // 因为后面当进行随机数据转发时，需要统计出口的个数，如果是双向通道就不行了
-	    domain[2] : sdn_switch;
-	    super : sdn_switch;
+	    domain[2] : domain_controller;
+	    super : super_controller;
 	
 	connections:
 	    //SDN switches
@@ -54,30 +86,40 @@ network sdn_network
 		switches[9].gate++ <--> Channel <--> switches[8].gate++;
 		switches[9].gate++ <--> Channel <--> switches[11].gate++;
 		switches[11].gate++ <--> Channel <--> switches[12].gate++;
+		switches[5].gate++ <--> Channel <--> switches[7].gate++;
+		switches[4].gate++ <--> Channel <--> switches[9].gate++;
 	    
 	    // slave controller
 	    for i = 0..2 {
-	    	slave[0].gate++ <--> Channel <--> switches[i].gate++;   
+	    	slave[0].in++ <-- Channel <-- switches[i].slave++;   
 	    }
 	    for i = 3..6 {
-	    	slave[1].gate++ <--> Channel <--> switches[i].gate++;
+	    	slave[1].in++ <-- Channel <-- switches[i].slave++;
 	    }
 	    for i = 7..9 {
-	    	slave[2].gate++ <--> Channel <--> switches[i].gate++;
+	    	slave[2].in++ <-- Channel <-- switches[i].slave++;
 	    }
 	    for i = 10..12 {
-	    	slave[3].gate++ <--> Channel <--> switches[i].gate++;
+	    	slave[3].in++ <-- Channel <-- switches[i].slave++;
 	    }
 	    
 	    // domain controller
-	    slave[0].gate++ <--> Channel <--> domain[0].gate++;
-	    slave[1].gate++ <--> Channel <--> domain[0].gate++;
-	    slave[2].gate++ <--> Channel <--> domain[1].gate++;
-	    slave[3].gate++ <--> Channel <--> domain[1].gate++;
+	    slave[0].gate++ <--> Channel <--> domain[0].slave++;
+	    slave[1].gate++ <--> Channel <--> domain[0].slave++;
+	    slave[2].gate++ <--> Channel <--> domain[1].slave++;
+	    slave[3].gate++ <--> Channel <--> domain[1].slave++;
+	    
+	    for i = 0..6 {
+	    	switches[i].domain++ --> Channel --> domain[0].in++;
+	    }
+	    
+	    for i = 7..11 {
+	    	switches[i].domain++ --> Channel --> domain[1].in++;
+	    }
 	    
 	    // super controller
 	    for i = 0..1 {
-	    	super.gate++ <--> Channel <--> domain[i].gate++;
+	    	super.gate++ <--> Channel <--> domain[i].super++;
 	    }
 }
 
