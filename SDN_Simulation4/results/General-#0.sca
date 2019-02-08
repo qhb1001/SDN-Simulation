@@ -1,0 +1,161 @@
+version 2
+run General-0-20190208-19:11:39-22388
+attr configname General
+attr datetime 20190208-19:11:39
+attr experiment General
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsf ""
+attr measurement ""
+attr network sdn_network
+attr processid 22388
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+
+statistic sdn_network.switches[0] hopCount:stats
+field count 39
+field mean 38.282051282051
+field stddev 43.806962146714
+field min 1
+field max 196
+field sum 1493
+field sqrsum 130079
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[1] hopCount:stats
+field count 50
+field mean 69.78
+field stddev 63.205944566721
+field min 1
+field max 287
+field sum 3489
+field sqrsum 439217
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[2] hopCount:stats
+field count 37
+field mean 45.486486486486
+field stddev 37.17572507073
+field min 3
+field max 128
+field sum 1683
+field sqrsum 126307
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[3] hopCount:stats
+field count 41
+field mean 15.585365853659
+field stddev 17.347875388295
+field min 1
+field max 71
+field sum 639
+field sqrsum 21997
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[4] hopCount:stats
+field count 47
+field mean 13.425531914894
+field stddev 10.364539631654
+field min 1
+field max 57
+field sum 631
+field sqrsum 13413
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[5] hopCount:stats
+field count 33
+field mean 24.212121212121
+field stddev 21.161222754956
+field min 1
+field max 109
+field sum 799
+field sqrsum 33675
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[6] hopCount:stats
+field count 40
+field mean 42.925
+field stddev 56.176638770843
+field min 1
+field max 301
+field sum 1717
+field sqrsum 196779
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[7] hopCount:stats
+field count 28
+field mean 21.785714285714
+field stddev 23.419455575886
+field min 1
+field max 117
+field sum 610
+field sqrsum 28098
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[8] hopCount:stats
+field count 39
+field mean 36.461538461538
+field stddev 36.150159171118
+field min 2
+field max 194
+field sum 1422
+field sqrsum 101508
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[9] hopCount:stats
+field count 36
+field mean 11.5
+field stddev 12.067666362167
+field min 1
+field max 42
+field sum 414
+field sqrsum 9858
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[10] hopCount:stats
+field count 45
+field mean 18.733333333333
+field stddev 17.667895897773
+field min 1
+field max 62
+field sum 843
+field sqrsum 29527
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[11] hopCount:stats
+field count 51
+field mean 23.960784313725
+field stddev 21.133821977403
+field min 1
+field max 77
+field sum 1222
+field sqrsum 51612
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+statistic sdn_network.switches[12] hopCount:stats
+field count 37
+field mean 30.459459459459
+field stddev 29.134357909705
+field min 1
+field max 118
+field sum 1127
+field sqrsum 64885
+attr interpolationmode none
+attr source arrival
+attr title "hop count, stats"
+
