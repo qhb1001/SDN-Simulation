@@ -70,8 +70,8 @@ The interaction with domain controller is clear above, which makes `inout gate[]
 
 ## Problem
 
+<<<<<<< HEAD
 I don't know the function to compare two strings, while compilor tells me to use `strncmp` but it didn't work. So I code it myself. 
-
 
 # Experiment 3 Implement stop-and-wait protocol
 
@@ -116,4 +116,7 @@ These two signals are designed to record the time when to send the message, and 
 
 1. [How to reply to the message in OMNet++?](https://stackoverflow.com/questions/48481224/how-to-reply-to-the-message-in-omnet)
 2. use default method like `setName()` and `getName()` regularly for `cMessage*`
-3. `getVectorSize()` will return the total gates in network, while `gateSize("gate")` will only return the number of nodes attached to this node.
+3. `getVectorSize()` will return the total gates in network, while `gateSize("gate")` will only return the number of nodes attached to this node. 
+=======
+I don't know the function to compare two strings, while compilor tells me to use `strncmp` but it didn't work. So I code it myself. 
+>>>>>>> ede672077d93b9a9718958a4f5b1db8d1114f801
