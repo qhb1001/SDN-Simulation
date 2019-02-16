@@ -1,0 +1,1 @@
+-O3 -DNDEBUG=1 -MMD -MP -MF .d    -isystem /Users/qinhongbo/omnetpp-5.4.1/tools/macosx/include -Wno-deprecated-register -Wno-unused-function -fno-stack-protector -DWITH_MPI -DXMLPARSER=libxml -DPREFER_QTENV -DWITH_QTENV -DWITH_PARSIM -DWITH_NETBUILDER -DWITH_OSG -DWITH_OSGEARTH   -I. -I/Users/qinhongbo/omnetpp-5.4.1/include

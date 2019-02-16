@@ -27,7 +27,8 @@ class sdn_switch : public cSimpleModule
 
     protected:
       virtual sdn_message *generateMessage(char *a);
-      virtual void forwardMessage(sdn_message *msg);
+      virtual void forwardMessage(sdn_message *msg, int to);
+      virtual void forwardMessageToDomain(sdn_message *msg);
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
       virtual void sendACK(sdn_message *msg);
@@ -71,7 +72,7 @@ void sdn_switch::initialize()
     if (getIndex() == 0 && cmp(getName(), "switches")) {
         // Boot the process scheduling the initial message as a self-message.
         cout << "About to send the mssage\n";
-        msg_ = generateMessage("first");
+        msg_ = generateMessage("msg");
         scheduleAt(0.0, msg_);
     }
 }
@@ -95,11 +96,13 @@ void sdn_switch::sendACK(sdn_message *msg) {
 
 void sdn_switch::handleMessage(cMessage *msg)
 {
-    EV << "This is from " << msg->getSenderModuleId() << endl;
+    EV << "This is " << msg->getName() << " message. ";
+
     if (cmp(msg->getName(), "msg")) {
         sdn_message* tempmsg = check_and_cast<sdn_message *>(msg);
-        sendACK(tempmsg);
+        if (tempmsg->getSource() != getIndex()) sendACK(tempmsg);
 //        EV << "just send ack to " << tempmsg->getSource() << " " << tempmsg->getDestination() << " " << getIndex() << endl;
+
         if (tempmsg->getDestination() == getIndex()) {
             int hopcount = tempmsg->getHopCount();
             emit(arrivalSignal, hopcount);
@@ -117,14 +120,6 @@ void sdn_switch::handleMessage(cMessage *msg)
             forwardMessage(tempmsg);
             scheduleAt(simTime()+timeout, timeoutEvent);
         }
-
-    }  else if (cmp(msg->getName(), "first")) {
-        sdn_message* tempmsg = check_and_cast<sdn_message *>(msg);
-        tempmsg->setName("msg");
-        EV << "And now it had the name of " << tempmsg->getName() << endl;
-        forwardMessage(tempmsg);
-        msg_ = tempmsg;
-        scheduleAt(simTime()+timeout, timeoutEvent);
 
     } else if (cmp(msg->getName(), "ack")){
         cancelEvent(timeoutEvent);
@@ -154,17 +149,25 @@ sdn_message *sdn_switch::generateMessage(char *a)
     return msg;
 }
 
-void sdn_switch::forwardMessage(sdn_message *msg)
+void sdn_switch::forwardMessage(sdn_message *msg, int to)
 {
     // Increment hop count.
     msg->setHopCount(msg->getHopCount()+1);
     msg->setSource(getIndex());
 
-    // Same routing as before: random gate.
-    int n = gateSize("gate");
-    int k = intuniform(0, n-1);
-
-    EV << "Forwarding message " << msg << " on gate[" << k << "]\n";
-    send(msg, "gate$o", k);
+    for (cModule::GateIterator i(this); !i.end(); i++)
+    {
+         cGate *gate = i();
+         std::string gateStr = gate->getName();
+         if (gateStr == "gate$o" && gate->getPathEndGate()->getOwnerModule()->getIndex() == to)
+         {
+             int senderId = gate->getIndex();
+             send(msg, "gate$o", senderId);
+         }
+    }
 }
 
+void sdn_switch::forwardMessageToDomain(sdn_message *msg) {
+
+
+}
