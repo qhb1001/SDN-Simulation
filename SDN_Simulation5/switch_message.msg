@@ -13,9 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-message sdn_message
+message switch_message
 {
     int source;
     int destination;
+	double loss[20];
+	double transmissionDelay[20];
+	double queuingDelay[20];
+	double availableBandwidth[20];
+	double totalBandwidth[20];
     int hopCount = 0;
 }

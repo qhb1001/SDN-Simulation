@@ -95,7 +95,19 @@ void sdn_switch::sendACK(sdn_message *msg) {
 
 void sdn_switch::handleMessage(cMessage *msg)
 {
-    EV << "This is from " << msg->getSenderModuleId() << endl;
+
+//    EV << msg->getParListPtr() << endl;
+//    msg->addPar("test").setDoubleValue(22.33);
+//
+//    EV << "after change: " << msg->par("test").doubleValue() << endl;
+//
+//    msg->addPar("ID");
+//    msg->par("ID").setStringValue("ID: 233");
+//    EV << "This is my ID: " << msg->par("ID").stringValue() << endl;
+//
+//    EV << "This is from " << msg->getSenderModuleId() << endl;
+
+
     if (cmp(msg->getName(), "msg")) {
         sdn_message* tempmsg = check_and_cast<sdn_message *>(msg);
         sendACK(tempmsg);

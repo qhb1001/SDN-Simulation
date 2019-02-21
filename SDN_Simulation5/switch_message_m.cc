@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.4 from sdn_message.msg.
+// Generated file, do not edit! Created by nedtool 5.4 from switch_message.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -26,7 +26,7 @@
 
 #include <iostream>
 #include <sstream>
-#include "sdn_message_m.h"
+#include "switch_message_m.h"
 
 namespace omnetpp {
 
@@ -177,25 +177,35 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(sdn_message)
+Register_Class(switch_message)
 
-sdn_message::sdn_message(const char *name, short kind) : ::omnetpp::cMessage(name,kind)
+switch_message::switch_message(const char *name, short kind) : ::omnetpp::cMessage(name,kind)
 {
     this->source = 0;
     this->destination = 0;
+    for (unsigned int i=0; i<20; i++)
+        this->loss[i] = 0;
+    for (unsigned int i=0; i<20; i++)
+        this->transmissionDelay[i] = 0;
+    for (unsigned int i=0; i<20; i++)
+        this->queuingDelay[i] = 0;
+    for (unsigned int i=0; i<20; i++)
+        this->availableBandwidth[i] = 0;
+    for (unsigned int i=0; i<20; i++)
+        this->totalBandwidth[i] = 0;
     this->hopCount = 0;
 }
 
-sdn_message::sdn_message(const sdn_message& other) : ::omnetpp::cMessage(other)
+switch_message::switch_message(const switch_message& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
 
-sdn_message::~sdn_message()
+switch_message::~switch_message()
 {
 }
 
-sdn_message& sdn_message::operator=(const sdn_message& other)
+switch_message& switch_message::operator=(const switch_message& other)
 {
     if (this==&other) return *this;
     ::omnetpp::cMessage::operator=(other);
@@ -203,66 +213,171 @@ sdn_message& sdn_message::operator=(const sdn_message& other)
     return *this;
 }
 
-void sdn_message::copy(const sdn_message& other)
+void switch_message::copy(const switch_message& other)
 {
     this->source = other.source;
     this->destination = other.destination;
+    for (unsigned int i=0; i<20; i++)
+        this->loss[i] = other.loss[i];
+    for (unsigned int i=0; i<20; i++)
+        this->transmissionDelay[i] = other.transmissionDelay[i];
+    for (unsigned int i=0; i<20; i++)
+        this->queuingDelay[i] = other.queuingDelay[i];
+    for (unsigned int i=0; i<20; i++)
+        this->availableBandwidth[i] = other.availableBandwidth[i];
+    for (unsigned int i=0; i<20; i++)
+        this->totalBandwidth[i] = other.totalBandwidth[i];
     this->hopCount = other.hopCount;
 }
 
-void sdn_message::parsimPack(omnetpp::cCommBuffer *b) const
+void switch_message::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
     doParsimPacking(b,this->source);
     doParsimPacking(b,this->destination);
+    doParsimArrayPacking(b,this->loss,20);
+    doParsimArrayPacking(b,this->transmissionDelay,20);
+    doParsimArrayPacking(b,this->queuingDelay,20);
+    doParsimArrayPacking(b,this->availableBandwidth,20);
+    doParsimArrayPacking(b,this->totalBandwidth,20);
     doParsimPacking(b,this->hopCount);
 }
 
-void sdn_message::parsimUnpack(omnetpp::cCommBuffer *b)
+void switch_message::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
     doParsimUnpacking(b,this->source);
     doParsimUnpacking(b,this->destination);
+    doParsimArrayUnpacking(b,this->loss,20);
+    doParsimArrayUnpacking(b,this->transmissionDelay,20);
+    doParsimArrayUnpacking(b,this->queuingDelay,20);
+    doParsimArrayUnpacking(b,this->availableBandwidth,20);
+    doParsimArrayUnpacking(b,this->totalBandwidth,20);
     doParsimUnpacking(b,this->hopCount);
 }
 
-int sdn_message::getSource() const
+int switch_message::getSource() const
 {
     return this->source;
 }
 
-void sdn_message::setSource(int source)
+void switch_message::setSource(int source)
 {
     this->source = source;
 }
 
-int sdn_message::getDestination() const
+int switch_message::getDestination() const
 {
     return this->destination;
 }
 
-void sdn_message::setDestination(int destination)
+void switch_message::setDestination(int destination)
 {
     this->destination = destination;
 }
 
-int sdn_message::getHopCount() const
+unsigned int switch_message::getLossArraySize() const
+{
+    return 20;
+}
+
+double switch_message::getLoss(unsigned int k) const
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    return this->loss[k];
+}
+
+void switch_message::setLoss(unsigned int k, double loss)
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    this->loss[k] = loss;
+}
+
+unsigned int switch_message::getTransmissionDelayArraySize() const
+{
+    return 20;
+}
+
+double switch_message::getTransmissionDelay(unsigned int k) const
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    return this->transmissionDelay[k];
+}
+
+void switch_message::setTransmissionDelay(unsigned int k, double transmissionDelay)
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    this->transmissionDelay[k] = transmissionDelay;
+}
+
+unsigned int switch_message::getQueuingDelayArraySize() const
+{
+    return 20;
+}
+
+double switch_message::getQueuingDelay(unsigned int k) const
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    return this->queuingDelay[k];
+}
+
+void switch_message::setQueuingDelay(unsigned int k, double queuingDelay)
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    this->queuingDelay[k] = queuingDelay;
+}
+
+unsigned int switch_message::getAvailableBandwidthArraySize() const
+{
+    return 20;
+}
+
+double switch_message::getAvailableBandwidth(unsigned int k) const
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    return this->availableBandwidth[k];
+}
+
+void switch_message::setAvailableBandwidth(unsigned int k, double availableBandwidth)
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    this->availableBandwidth[k] = availableBandwidth;
+}
+
+unsigned int switch_message::getTotalBandwidthArraySize() const
+{
+    return 20;
+}
+
+double switch_message::getTotalBandwidth(unsigned int k) const
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    return this->totalBandwidth[k];
+}
+
+void switch_message::setTotalBandwidth(unsigned int k, double totalBandwidth)
+{
+    if (k>=20) throw omnetpp::cRuntimeError("Array of size 20 indexed by %lu", (unsigned long)k);
+    this->totalBandwidth[k] = totalBandwidth;
+}
+
+int switch_message::getHopCount() const
 {
     return this->hopCount;
 }
 
-void sdn_message::setHopCount(int hopCount)
+void switch_message::setHopCount(int hopCount)
 {
     this->hopCount = hopCount;
 }
 
-class sdn_messageDescriptor : public omnetpp::cClassDescriptor
+class switch_messageDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
   public:
-    sdn_messageDescriptor();
-    virtual ~sdn_messageDescriptor();
+    switch_messageDescriptor();
+    virtual ~switch_messageDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -284,24 +399,24 @@ class sdn_messageDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(sdn_messageDescriptor)
+Register_ClassDescriptor(switch_messageDescriptor)
 
-sdn_messageDescriptor::sdn_messageDescriptor() : omnetpp::cClassDescriptor("sdn_message", "omnetpp::cMessage")
+switch_messageDescriptor::switch_messageDescriptor() : omnetpp::cClassDescriptor("switch_message", "omnetpp::cMessage")
 {
     propertynames = nullptr;
 }
 
-sdn_messageDescriptor::~sdn_messageDescriptor()
+switch_messageDescriptor::~switch_messageDescriptor()
 {
     delete[] propertynames;
 }
 
-bool sdn_messageDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool switch_messageDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<sdn_message *>(obj)!=nullptr;
+    return dynamic_cast<switch_message *>(obj)!=nullptr;
 }
 
-const char **sdn_messageDescriptor::getPropertyNames() const
+const char **switch_messageDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -312,19 +427,19 @@ const char **sdn_messageDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *sdn_messageDescriptor::getProperty(const char *propertyname) const
+const char *switch_messageDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int sdn_messageDescriptor::getFieldCount() const
+int switch_messageDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 3+basedesc->getFieldCount() : 3;
+    return basedesc ? 8+basedesc->getFieldCount() : 8;
 }
 
-unsigned int sdn_messageDescriptor::getFieldTypeFlags(int field) const
+unsigned int switch_messageDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -335,12 +450,17 @@ unsigned int sdn_messageDescriptor::getFieldTypeFlags(int field) const
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,
         FD_ISEDITABLE,
+        FD_ISARRAY | FD_ISEDITABLE,
+        FD_ISARRAY | FD_ISEDITABLE,
+        FD_ISARRAY | FD_ISEDITABLE,
+        FD_ISARRAY | FD_ISEDITABLE,
+        FD_ISARRAY | FD_ISEDITABLE,
         FD_ISEDITABLE,
     };
-    return (field>=0 && field<3) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<8) ? fieldTypeFlags[field] : 0;
 }
 
-const char *sdn_messageDescriptor::getFieldName(int field) const
+const char *switch_messageDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -351,22 +471,32 @@ const char *sdn_messageDescriptor::getFieldName(int field) const
     static const char *fieldNames[] = {
         "source",
         "destination",
+        "loss",
+        "transmissionDelay",
+        "queuingDelay",
+        "availableBandwidth",
+        "totalBandwidth",
         "hopCount",
     };
-    return (field>=0 && field<3) ? fieldNames[field] : nullptr;
+    return (field>=0 && field<8) ? fieldNames[field] : nullptr;
 }
 
-int sdn_messageDescriptor::findField(const char *fieldName) const
+int switch_messageDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
     if (fieldName[0]=='s' && strcmp(fieldName, "source")==0) return base+0;
     if (fieldName[0]=='d' && strcmp(fieldName, "destination")==0) return base+1;
-    if (fieldName[0]=='h' && strcmp(fieldName, "hopCount")==0) return base+2;
+    if (fieldName[0]=='l' && strcmp(fieldName, "loss")==0) return base+2;
+    if (fieldName[0]=='t' && strcmp(fieldName, "transmissionDelay")==0) return base+3;
+    if (fieldName[0]=='q' && strcmp(fieldName, "queuingDelay")==0) return base+4;
+    if (fieldName[0]=='a' && strcmp(fieldName, "availableBandwidth")==0) return base+5;
+    if (fieldName[0]=='t' && strcmp(fieldName, "totalBandwidth")==0) return base+6;
+    if (fieldName[0]=='h' && strcmp(fieldName, "hopCount")==0) return base+7;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *sdn_messageDescriptor::getFieldTypeString(int field) const
+const char *switch_messageDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -377,12 +507,17 @@ const char *sdn_messageDescriptor::getFieldTypeString(int field) const
     static const char *fieldTypeStrings[] = {
         "int",
         "int",
+        "double",
+        "double",
+        "double",
+        "double",
+        "double",
         "int",
     };
-    return (field>=0 && field<3) ? fieldTypeStrings[field] : nullptr;
+    return (field>=0 && field<8) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **sdn_messageDescriptor::getFieldPropertyNames(int field) const
+const char **switch_messageDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -395,7 +530,7 @@ const char **sdn_messageDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *sdn_messageDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *switch_messageDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -408,7 +543,7 @@ const char *sdn_messageDescriptor::getFieldProperty(int field, const char *prope
     }
 }
 
-int sdn_messageDescriptor::getFieldArraySize(void *object, int field) const
+int switch_messageDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -416,13 +551,18 @@ int sdn_messageDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    sdn_message *pp = (sdn_message *)object; (void)pp;
+    switch_message *pp = (switch_message *)object; (void)pp;
     switch (field) {
+        case 2: return 20;
+        case 3: return 20;
+        case 4: return 20;
+        case 5: return 20;
+        case 6: return 20;
         default: return 0;
     }
 }
 
-const char *sdn_messageDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *switch_messageDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -430,13 +570,13 @@ const char *sdn_messageDescriptor::getFieldDynamicTypeString(void *object, int f
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    sdn_message *pp = (sdn_message *)object; (void)pp;
+    switch_message *pp = (switch_message *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string sdn_messageDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string switch_messageDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -444,16 +584,21 @@ std::string sdn_messageDescriptor::getFieldValueAsString(void *object, int field
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    sdn_message *pp = (sdn_message *)object; (void)pp;
+    switch_message *pp = (switch_message *)object; (void)pp;
     switch (field) {
         case 0: return long2string(pp->getSource());
         case 1: return long2string(pp->getDestination());
-        case 2: return long2string(pp->getHopCount());
+        case 2: return double2string(pp->getLoss(i));
+        case 3: return double2string(pp->getTransmissionDelay(i));
+        case 4: return double2string(pp->getQueuingDelay(i));
+        case 5: return double2string(pp->getAvailableBandwidth(i));
+        case 6: return double2string(pp->getTotalBandwidth(i));
+        case 7: return long2string(pp->getHopCount());
         default: return "";
     }
 }
 
-bool sdn_messageDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool switch_messageDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -461,16 +606,21 @@ bool sdn_messageDescriptor::setFieldValueAsString(void *object, int field, int i
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    sdn_message *pp = (sdn_message *)object; (void)pp;
+    switch_message *pp = (switch_message *)object; (void)pp;
     switch (field) {
         case 0: pp->setSource(string2long(value)); return true;
         case 1: pp->setDestination(string2long(value)); return true;
-        case 2: pp->setHopCount(string2long(value)); return true;
+        case 2: pp->setLoss(i,string2double(value)); return true;
+        case 3: pp->setTransmissionDelay(i,string2double(value)); return true;
+        case 4: pp->setQueuingDelay(i,string2double(value)); return true;
+        case 5: pp->setAvailableBandwidth(i,string2double(value)); return true;
+        case 6: pp->setTotalBandwidth(i,string2double(value)); return true;
+        case 7: pp->setHopCount(string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *sdn_messageDescriptor::getFieldStructName(int field) const
+const char *switch_messageDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -483,7 +633,7 @@ const char *sdn_messageDescriptor::getFieldStructName(int field) const
     };
 }
 
-void *sdn_messageDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *switch_messageDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -491,7 +641,7 @@ void *sdn_messageDescriptor::getFieldStructValuePointer(void *object, int field,
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    sdn_message *pp = (sdn_message *)object; (void)pp;
+    switch_message *pp = (switch_message *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }

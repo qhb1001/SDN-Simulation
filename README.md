@@ -8,6 +8,8 @@ This is the network topology structure designed by "parameter".
 
 It should be noticed that I design this network from nowhere... Because I can't find a specific SDN topology structure with three layers in paper. At the same time, because my coding ability is not so good yet, I set few nodes for future debugging. 
 
+2.21 Well… I suddenly come to the fact that why there are only two layers in the original paper: because the slave controllers are only responsible for the transferring of information and nothing else. The meaning of it is just reduce the strain of the network, while the domain controller and super controller are enough for this new kind of network. 
+
 ## Problem
 
 If there exits blank in project's name, programm won't be compiled successfully. 
@@ -122,7 +124,7 @@ These two signals are designed to record the time when to send the message, and 
 
 ## Goal
 
-In order to implement a relatively real network and get the reward function in RL algorithm done, we need to set some random values. 
+In order to implement a relatively real network and get the reward function in RL algorithm done, we need to set some random values. **For the sake of simpleness, I set these random value to be static.** In other words, once they have been set, those values won't change during the simulation.
 
 ## Details
 
@@ -182,15 +184,78 @@ Remember to save the changes... otherwise you will find that no matter how many 
 
 # Experiment 5 Design Software Defined Network
 
-# Goal
+## 1. Goal
 
 In order to handle the message generation and forward, there should exist several types of message, such as 1)from switch to switch 2)from switch to domain 3) from domain to switch 4)from switch to slave 5) from slave to domain 6)from domain to super 7)from super to domain
 
 Not only the contents in messages differ, but also the operation after receiving messages differ. What's more, every simple also need some data structures to communicate with each other, such as forward table, storing the information of network or subnetwork, etc. 
 
-## Detail
+### 2. Design contents of message for every link
 
-### 1. Send message to specific switch
+#### 2.1 message from switches
+
+This type of message includes three kinds of link, which are: 
+
+- from switch to switch
+- from switch to domain
+- from switch to slave
+
+The first two kinds of link use the source address and destination address to plan the route for it. While the last one needs the condition of the network for RL algorithm. Based on the discussion above, I design the message from switch like this: 
+
+```c++
+message switch_message
+{
+    int source;
+    int destination;
+	double loss[20];
+	double transmissionDelay[20];
+	double queuingDelay[20];
+	double availableBandwidth[20];
+	double totalBandwidth[20];
+    int hopCount = 0;
+}
+```
+
+And every switch will have about the same information. As for the reason why these arraies are one-demensional is that omnet++ just doesn't support two-demensional definition in `.msg` file...
+
+**In fact, we can randomize the network condition whenever we use it.**
+
+- from domain to switch 
+- from slave to domain
+- from domain to super
+- from super to domain
+
+### 3. Detail 
+
+#### 3.1 How to add parameters to the cMessage object
+
+First of all, my way to include information such as ID, network condition, etc. into the built-in data structure `cMessage` is to utilize the function of `parList`. For example, if I want to add a new attribute `totalbandwidth` to cMessage pointer `msg`, it would be something like this
+
+```c++
+msg->addPar("totalBandwidth").setDoubleValue(123.2); //set the value to 123.2
+EV << msg->par("totalBandwidth").doubleValue() << endl; // output the specific value
+```
+
+***The source code is the most powerful tool to learn omnet++ framework.*** 
+
+#### 3.2 How to get the module the message belongs to
+
+```c++
+msg->getSenderModule()->getName();
+```
+
+#### 3.3 How to send message from switch to domain controller
+
+it should be noticed that after applied the function `send`, the message being sent will be deleted in memory. So it is necessary to make a copy before send it like this:
+
+```c++
+void sdn_switch::forwardMessageToDomain(switch_message *msg) {
+    cMessage* copy = (cMessage*) msg->dup();
+    send(copy, "domain");
+}
+```
+
+#### 3.4 How to send message to one specific switch 
 
 ```c++
 void sdn_switch::forwardMessage(sdn_message *msg, int to)
@@ -212,12 +277,3 @@ void sdn_switch::forwardMessage(sdn_message *msg, int to)
 }
 ```
 
-### 2. Design contents of message for every link
-
-* from switch to switch
-* from switch to domain
-* from domain to switch 
-* from switch to slave
-* from slave to domain
-* from domain to super
-* from super to domain

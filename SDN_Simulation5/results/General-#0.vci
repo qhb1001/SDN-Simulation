@@ -1,15 +1,15 @@
-file 5237 1550301997                                            
+file 10523 1550737201                                           
 version 2
-run General-0-20190216-15:26:06-3432
+run General-0-20190221-16:19:35-2293
 attr configname General
-attr datetime 20190216-15:26:06
+attr datetime 20190221-16:19:35
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvarsf ""
 attr measurement ""
 attr network sdn_network
-attr processid 3432
+attr processid 2293
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -21,69 +21,69 @@ param sdn_network.switches[*].loss "truncnormal(0.1, 0.11)"
 param sdn_network.switches[*].availableBandwidth "uniform(1, 101)"
 param sdn_network.switches[*].totalBandwidth "uniform(1, 101)"
 
-vector 0 sdn_network.switches[11] hopCount:vector ETV
+vector 0 sdn_network.switches[2] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 1 sdn_network.switches[0] hopCount:vector ETV
+vector 1 sdn_network.switches[11] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 2 sdn_network.switches[4] hopCount:vector ETV
+vector 2 sdn_network.switches[1] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 3 sdn_network.switches[1] hopCount:vector ETV
+vector 3 sdn_network.switches[12] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 4 sdn_network.switches[6] hopCount:vector ETV
+vector 4 sdn_network.switches[7] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 5 sdn_network.switches[8] hopCount:vector ETV
+vector 5 sdn_network.switches[9] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 6 sdn_network.switches[10] hopCount:vector ETV
+vector 6 sdn_network.switches[8] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 7 sdn_network.switches[7] hopCount:vector ETV
+vector 7 sdn_network.switches[0] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 8 sdn_network.switches[3] hopCount:vector ETV
+vector 8 sdn_network.switches[4] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 9 sdn_network.switches[5] hopCount:vector ETV
+vector 9 sdn_network.switches[6] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 10 sdn_network.switches[2] hopCount:vector ETV
+vector 10 sdn_network.switches[3] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 11 sdn_network.switches[12] hopCount:vector ETV
+vector 11 sdn_network.switches[10] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 12 sdn_network.switches[9] hopCount:vector ETV
+vector 12 sdn_network.switches[5] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-0	2403 182 72 10024 3.6 501.2 12 1 59 314 11612
-1	2585 251 144 9944 7.2 497.2 17 1 86 499 23765
-2	2836 220 232 9900 11.6 495 15 1 44 254 6630
-3	3056 278 474 9946 23.7 497.3 18 1 217 864 91422
-4	3334 277 558 9902 27.9 495.1 18 1 85 566 29128
-5	3611 169 700 8116 35 405.8 11 4 164 669 61339
-6	3780 162 804 8372 40.2 418.6 11 1 23 111 1925
-7	3942 265 866 9106 43.3 455.3 17 1 64 391 14655
-8	4207 195 886 8586 44.3 429.3 13 1 16 82 772
-9	4402 164 888 8188 44.4 409.4 11 1 40 196 5858
-10	4566 193 948 9632 47.4 481.6 12 5 101 527 35915
-11	4759 217 1346 9870 67.3 493.5 13 1 77 342 16632
-12	4976 260 1638 10022 81.9 501.1 16 1 66 197 6727
+0	2403 537 24 38244 0.8 1274.8 33 2 228 1529 152221
+1	2940 646 138 38064 4.6 1268.8 40 1 129 856 41534
+2	3586 746 561 36981 18.7 1232.7 45 1 217 1855 146521
+3	4332 812 603 38217 20.1 1273.9 49 1 81 1126 47196
+4	5144 775 609 36915 20.3 1230.5 47 1 97 1276 61350
+5	5919 540 687 36459 22.9 1215.3 33 1 66 442 11838
+6	6459 562 738 38154 24.6 1271.8 34 1 164 1349 94875
+7	7021 586 1008 37068 33.6 1235.6 36 1 231 1150 100910
+8	7607 590 1044 38034 34.8 1267.8 37 1 48 428 9702
+9	8197 657 1341 38169 44.7 1272.3 39 1 122 1348 81972
+10	8854 546 2019 37443 67.3 1248.1 32 1 49 326 6944
+11	9400 508 2598 37344 86.6 1244.8 30 1 54 473 14173
+12	9908 614 4638 38088 154.6 1269.6 35 1 40 590 14374
 

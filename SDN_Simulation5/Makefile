@@ -30,11 +30,11 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/domain_controller.o $O/slave_controller.o $O/super_controller.o $O/switch.o $O/sdn_message_m.o
+OBJS = $O/domain_controller.o $O/slave_controller.o $O/super_controller.o $O/switch.o $O/switch_message_m.o
 
 # Message files
 MSGFILES = \
-    sdn_message.msg
+    switch_message.msg
 
 # SM files
 SMFILES =

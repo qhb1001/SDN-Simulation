@@ -10,7 +10,7 @@
 #include <string.h>
 #include <omnetpp.h>
 #include <string>
-#include "sdn_message_m.h"
+#include "switch_message_m.h"
 
 using namespace omnetpp;
 using namespace std;
@@ -21,17 +21,21 @@ class sdn_switch : public cSimpleModule
       simsignal_t arrivalSignal;
       simtime_t timeout;  // timeout
       cMessage *timeoutEvent;  // holds pointer to the timeout self-message
-      sdn_message *msg_;
-      double loss[200], transmissionDelay[200], queuingDelay[200];
-      double availableBandwidth[200], totalBandwidth[200];
+      switch_message *msg_;
+      double loss[20], transmissionDelay[20], queuingDelay[20];
+      double availableBandwidth[20], totalBandwidth[20];
+      int idx;
 
     protected:
-      virtual sdn_message *generateMessage(char *a);
-      virtual void forwardMessage(sdn_message *msg, int to);
-      virtual void forwardMessageToDomain(sdn_message *msg);
+      virtual switch_message *generateMessage(char *a);
+//      virtual void forwardMessage(sdn_message *msg, int to);
+      virtual void forwardMessage(switch_message *msg);
+      virtual void forwardMessageToDomain(switch_message *msg);
+      virtual void forwaedMessageToSlave(switch_message *msg);
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
-      virtual void sendACK(sdn_message *msg);
+      virtual void sendACK(switch_message *msg);
+      virtual void recordInformation(switch_message *msg);
 };
 
 Define_Module(sdn_switch);
@@ -48,25 +52,31 @@ void sdn_switch::initialize()
     timeoutEvent = new cMessage("timeoutEvent");
 
     arrivalSignal = registerSignal("arrival");
-    int id = getIndex();
-    int numberOfGate = gateSize("gate");
-    int n = getVectorSize();
-//    EV << numberOfGate << endl;
+    idx = getIndex();
 
-    for (int i = 0; i <= numberOfGate; ++i) {
-            loss[i] = par("loss");
-            transmissionDelay[i] = par("transmissionDelay");
-            queuingDelay[i] = par("queuingDelay");
-            availableBandwidth[i] = par("availableBandwidth");
-            totalBandwidth[i] = par("totalBandwidth");
-            while (totalBandwidth[i] < availableBandwidth[i])   totalBandwidth[i] = par("totalBandwidth");
-        }
+    for (int i = 0; i < 20; ++i) {
+        loss[i] = transmissionDelay[i] = -1;
+        queuingDelay[i] = availableBandwidth[i] = -1;
+        totalBandwidth[i] = -1;
+    }
 
 
-//    EV << "This is node of " << id << " and it has " << numberOfGate << " gates with the name of " << getName() << "\n";
-//    EV << "Vector size for node " << id << " is " << n << endl;
-    EV << "This is node " << id << " and its loss[0] is " << loss[0] << ", transmissionDelay[0]:" << transmissionDelay[0] << ", queuingDelay[0]:" << queuingDelay[0] << endl;
-    EV << "And its availableBandwidth[0]:" << availableBandwidth[0] << ", totalBandwidth[0]:" << totalBandwidth[0] << endl;
+    for (cModule::GateIterator i(this); !i.end(); i++)
+    {
+         cGate *gate = i();
+         std::string gateStr = gate->getName();
+         if (gateStr == "gate$o")
+         {
+             int to = gate->getPathEndGate()->getOwnerModule()->getIndex();
+             loss[to] = par("loss");
+             transmissionDelay[to] = par("transmissionDelay");
+             queuingDelay[to] = par("queuingDelay");
+             availableBandwidth[to] = par("availableBandwidth");
+             totalBandwidth[to] = par("totalBandwidth");
+             while (totalBandwidth[to] < availableBandwidth[to])   totalBandwidth[to] = par("totalBandwidth");
+         }
+    }
+
 
     // Module 0 sends the first message
     if (getIndex() == 0 && cmp(getName(), "switches")) {
@@ -77,9 +87,9 @@ void sdn_switch::initialize()
     }
 }
 
-void sdn_switch::sendACK(sdn_message *msg) {
-    sdn_message* ack = generateMessage("ack");
-    int to = msg->getSource();
+void sdn_switch::sendACK(switch_message *msg) {
+    switch_message* ack = generateMessage("ack");
+
     //EV << "This is node " << getIndex() << " with " << gateSize("gate") << "nodes and des " << to << endl;
     cGate * sender = msg->getSenderGate();
     for (cModule::GateIterator i(this); !i.end(); i++)
@@ -96,42 +106,48 @@ void sdn_switch::sendACK(sdn_message *msg) {
 
 void sdn_switch::handleMessage(cMessage *msg)
 {
-    EV << "This is " << msg->getName() << " message. ";
+    string from =  msg->getSenderModule()->getName();
 
-    if (cmp(msg->getName(), "msg")) {
-        sdn_message* tempmsg = check_and_cast<sdn_message *>(msg);
-        if (tempmsg->getSource() != getIndex()) sendACK(tempmsg);
-//        EV << "just send ack to " << tempmsg->getSource() << " " << tempmsg->getDestination() << " " << getIndex() << endl;
+    if (from == "switches") {
+        if (cmp(msg->getName(), "msg")) {
+            switch_message* tempmsg = check_and_cast<switch_message *>(msg);
+            recordInformation(tempmsg);
+            forwardMessageToSlave(tempmsg);
+            if (tempmsg->getSource() != getIndex()) sendACK(tempmsg);
+    //        EV << "just send ack to " << tempmsg->getSource() << " " << tempmsg->getDestination() << " " << getIndex() << endl;
 
-        if (tempmsg->getDestination() == getIndex()) {
-            int hopcount = tempmsg->getHopCount();
-            emit(arrivalSignal, hopcount);
+            if (tempmsg->getDestination() == getIndex()) {
+                int hopcount = tempmsg->getHopCount();
+                emit(arrivalSignal, hopcount);
 
-            bubble("ARRIVED, starting new one!");
+                bubble("ARRIVED, starting new one!");
 
-            //EV << "Generating another message: ";
-            msg_ = generateMessage("msg");
-            //EV << newmsg << endl;
+                //EV << "Generating another message: ";
+                msg_ = generateMessage("msg");
+                //EV << newmsg << endl;
+                forwardMessage(msg_);
+                scheduleAt(simTime()+timeout, timeoutEvent);
+            } else {
+                tempmsg->setSource(getIndex());
+                msg_ = tempmsg;
+                forwardMessage(tempmsg);
+                scheduleAt(simTime()+timeout, timeoutEvent);
+            }
+
+        } else if (cmp(msg->getName(), "ack")){
+            cancelEvent(timeoutEvent);
+
+        } else if (cmp(msg->getName(), "timeoutEvent")) {
             forwardMessage(msg_);
             scheduleAt(simTime()+timeout, timeoutEvent);
-        } else {
-            tempmsg->setSource(getIndex());
-            msg_ = tempmsg;
-            forwardMessage(tempmsg);
-            scheduleAt(simTime()+timeout, timeoutEvent);
         }
+    } else {
 
-    } else if (cmp(msg->getName(), "ack")){
-        cancelEvent(timeoutEvent);
-
-    } else if (cmp(msg->getName(), "timeoutEvent")) {
-        forwardMessage(msg_);
-        scheduleAt(simTime()+timeout, timeoutEvent);
 
     }
 }
 
-sdn_message *sdn_switch::generateMessage(char *a)
+switch_message *sdn_switch::generateMessage(char *a)
 {
     // Produce source and destination addresses.
     int src = getIndex();
@@ -141,7 +157,7 @@ sdn_message *sdn_switch::generateMessage(char *a)
         dest++;
 
     // Create message object and set source and destination field.
-    sdn_message *msg = new sdn_message(a);
+    switch_message *msg = new switch_message(a);
     msg->setSource(src);
     msg->setDestination(dest);
 
@@ -149,25 +165,64 @@ sdn_message *sdn_switch::generateMessage(char *a)
     return msg;
 }
 
-void sdn_switch::forwardMessage(sdn_message *msg, int to)
+
+void sdn_switch::forwardMessage(switch_message *msg)
 {
     // Increment hop count.
     msg->setHopCount(msg->getHopCount()+1);
     msg->setSource(getIndex());
 
-    for (cModule::GateIterator i(this); !i.end(); i++)
-    {
-         cGate *gate = i();
-         std::string gateStr = gate->getName();
-         if (gateStr == "gate$o" && gate->getPathEndGate()->getOwnerModule()->getIndex() == to)
-         {
-             int senderId = gate->getIndex();
-             send(msg, "gate$o", senderId);
-         }
+    // Same routing as before: random gate.
+    int n = gateSize("gate");
+    int k = intuniform(0, n-1);
+
+    EV << "Forwarding message " << msg << " on gate[" << k << "]\n";
+    send(msg, "gate$o", k);
+}
+
+//void sdn_switch::forwardMessage(sdn_message *msg, int to)
+//{
+//    // Increment hop count.
+//    msg->setHopCount(msg->getHopCount()+1);
+//    msg->setSource(getIndex());
+//
+//    for (cModule::GateIterator i(this); !i.end(); i++)
+//    {
+//         cGate *gate = i();
+//         std::string gateStr = gate->getName();
+//         if (gateStr == "gate$o" && gate->getPathEndGate()->getOwnerModule()->getIndex() == to)
+//         {
+//             int senderId = gate->getIndex();
+//             send(msg, "gate$o", senderId);
+//         }
+//    }
+//}
+
+void sdn_switch::forwardMessageToDomain(switch_message *msg) {
+    switch_message* copy =  msg->dup();
+    send(copy, "domain");
+}
+
+void sdn_switch::forwardMessageToSlave(switch_message *msg) {
+    switch_message* copy =  msg->dup();
+    send(copy, "slave");
+}
+void sdn_switch::recordInformation(switch_message *msg) {
+
+    for (int i = 0; i < 20; ++i) {
+        msg->setLoss(i, loss[i]);
+        msg->setTransmissionDelay(i, transmissionDelay[i]);
+        msg->setQueuingDelay(i, queuingDelay[i]);
+        msg->setAvailableBandwidth(i, availableBandwidth[i]);
+        msg->setTotalBandwidth(i, totalBandwidth[i]);
     }
 }
 
-void sdn_switch::forwardMessageToDomain(sdn_message *msg) {
 
 
-}
+
+
+
+
+
+

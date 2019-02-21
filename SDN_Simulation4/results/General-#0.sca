@@ -1,14 +1,14 @@
 version 2
-run General-0-20190216-16:52:35-12234
+run General-0-20190218-11:37:32-43213
 attr configname General
-attr datetime 20190216-16:52:35
+attr datetime 20190218-11:37:32
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvarsf ""
 attr measurement ""
 attr network sdn_network
-attr processid 12234
+attr processid 43213
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -164,16 +164,16 @@ attr interpolationmode none
 attr source arrival
 attr title "hop count, stats"
 
-run General-0-20190216-16:48:51-11681
+run General-0-20190218-17:24:34-53569
 attr configname General
-attr datetime 20190216-16:48:51
+attr datetime 20190218-17:24:34
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvarsf ""
 attr measurement ""
 attr network sdn_network
-attr processid 11681
+attr processid 53569
 attr repetition 0
 attr replication #0
 attr resultdir results
