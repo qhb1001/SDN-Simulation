@@ -220,9 +220,27 @@ And every switch will have about the same information. As for the reason why the
 
 **In fact, we can randomize the network condition whenever we use it.**
 
-- from domain to switch 
+#### 2.2 message from slave controller
+
 - from slave to domain
+
+After exploring the content about source code of class [cObecjt](https://doc.omnetpp.org/omnetpp/api/classomnetpp_1_1cArray.html), I figure out one way to transfer the  two-dimensional network condition from slave controller to domain controller by cMessge object like this: 
+
+```c++
+condition* cond = new condition();
+cond->loss[2][1] = 404;
+msg->addObject(cond);
+condition* cond_ = (condition* )(msg->getObject("")); // the default name for cObject
+EV << "This is the original value: " << cond_->loss[2][1] << endl; // retrieve the value in loss[2][1]
+```
+
+#### 2.3 massage from domain controller
+
+- from domain to switch
 - from domain to super
+
+The purpose of the first kind message is to ask slave controller to send network condition information to itself. 
+
 - from super to domain
 
 ### 3. Detail 

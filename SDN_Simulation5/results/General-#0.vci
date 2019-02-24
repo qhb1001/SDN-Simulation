@@ -1,15 +1,15 @@
-file 10523 1550737201                                           
+file 827 1550926890                                             
 version 2
-run General-0-20190221-16:19:35-2293
+run General-0-20190223-21:00:48-31440
 attr configname General
-attr datetime 20190221-16:19:35
+attr datetime 20190223-21:00:48
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvarsf ""
 attr measurement ""
 attr network sdn_network
-attr processid 2293
+attr processid 31440
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -25,65 +25,5 @@ vector 0 sdn_network.switches[2] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-vector 1 sdn_network.switches[11] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 2 sdn_network.switches[1] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 3 sdn_network.switches[12] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 4 sdn_network.switches[7] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 5 sdn_network.switches[9] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 6 sdn_network.switches[8] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 7 sdn_network.switches[0] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 8 sdn_network.switches[4] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 9 sdn_network.switches[6] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 10 sdn_network.switches[3] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 11 sdn_network.switches[10] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-vector 12 sdn_network.switches[5] hopCount:vector ETV
-attr interpolationmode none
-attr source arrival
-attr title "hop count, vector"
-0	2403 537 24 38244 0.8 1274.8 33 2 228 1529 152221
-1	2940 646 138 38064 4.6 1268.8 40 1 129 856 41534
-2	3586 746 561 36981 18.7 1232.7 45 1 217 1855 146521
-3	4332 812 603 38217 20.1 1273.9 49 1 81 1126 47196
-4	5144 775 609 36915 20.3 1230.5 47 1 97 1276 61350
-5	5919 540 687 36459 22.9 1215.3 33 1 66 442 11838
-6	6459 562 738 38154 24.6 1271.8 34 1 164 1349 94875
-7	7021 586 1008 37068 33.6 1235.6 36 1 231 1150 100910
-8	7607 590 1044 38034 34.8 1267.8 37 1 48 428 9702
-9	8197 657 1341 38169 44.7 1272.3 39 1 122 1348 81972
-10	8854 546 2019 37443 67.3 1248.1 32 1 49 326 6944
-11	9400 508 2598 37344 86.6 1244.8 30 1 54 473 14173
-12	9908 614 4638 38088 154.6 1269.6 35 1 40 590 14374
+0	815 11 24 24 0.8 0.8 1 8 8 8 64
 

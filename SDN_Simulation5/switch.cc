@@ -10,6 +10,7 @@
 #include <string.h>
 #include <omnetpp.h>
 #include <string>
+#include <condition.h>
 #include "switch_message_m.h"
 
 using namespace omnetpp;
@@ -31,7 +32,7 @@ class sdn_switch : public cSimpleModule
 //      virtual void forwardMessage(sdn_message *msg, int to);
       virtual void forwardMessage(switch_message *msg);
       virtual void forwardMessageToDomain(switch_message *msg);
-      virtual void forwaedMessageToSlave(switch_message *msg);
+      virtual void forwardMessageToSlave(switch_message *msg);
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
       virtual void sendACK(switch_message *msg);
@@ -108,6 +109,13 @@ void sdn_switch::handleMessage(cMessage *msg)
 {
     string from =  msg->getSenderModule()->getName();
 
+    condition* cond = new condition();
+    cond->loss[2][1] = 404;
+    msg->addObject(cond);
+    condition* cond_ = (condition* )(msg->getObject(""));
+    EV << "This is the original value: " << cond_->loss[2][1] << endl;
+
+
     if (from == "switches") {
         if (cmp(msg->getName(), "msg")) {
             switch_message* tempmsg = check_and_cast<switch_message *>(msg);
@@ -177,7 +185,7 @@ void sdn_switch::forwardMessage(switch_message *msg)
     int k = intuniform(0, n-1);
 
     EV << "Forwarding message " << msg << " on gate[" << k << "]\n";
-    send(msg, "gate$o", k);
+    send(msg->dup(), "gate$o", k);
 }
 
 //void sdn_switch::forwardMessage(sdn_message *msg, int to)

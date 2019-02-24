@@ -38,7 +38,7 @@ simple slave_controller
 		
 	gates:
 	    input in[];
-	    inout gate[];
+	    inout domain;
 }
 
 simple domain_controller 
@@ -109,10 +109,10 @@ network sdn_network
 	    }
 	    
 	    // domain controller
-	    slave[0].gate++ <--> Channel <--> domain[0].slave++;
-	    slave[1].gate++ <--> Channel <--> domain[0].slave++;
-	    slave[2].gate++ <--> Channel <--> domain[1].slave++;
-	    slave[3].gate++ <--> Channel <--> domain[1].slave++;
+	    slave[0].domain <--> Channel <--> domain[0].slave++;
+	    slave[1].domain <--> Channel <--> domain[0].slave++;
+	    slave[2].domain <--> Channel <--> domain[1].slave++;
+	    slave[3].domain <--> Channel <--> domain[1].slave++;
 	    
 	    for i = 0..6 {
 	    	switches[i].domain --> Channel --> domain[0].in++;

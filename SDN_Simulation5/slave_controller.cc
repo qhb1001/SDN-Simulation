@@ -9,9 +9,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <omnetpp.h>
+#include <condition.h>
 #include "switch_message_m.h"
 
 using namespace omnetpp;
+using namespace std;
 
 class slave_controller : public cSimpleModule
 {
@@ -24,12 +26,20 @@ class slave_controller : public cSimpleModule
       virtual void forwardMessage(cMessage *msg);
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
+      virtual void copyCondition(condition* cond);
 };
 
 Define_Module(slave_controller);
 
 void slave_controller::initialize()
 {
+    for (int i = 0; i < 20; ++i) {
+        for (int j = 0; j < 20; ++j) {
+            loss[i][j] = transmissionDelay[i][j] = -1;
+            queuingDelay[i][j] = availableBandwidth[i][j] = -1;
+            totalBandwidth[i][j] = -1;
+        }
+    }
 }
 
 // this part will be updated later
@@ -40,16 +50,31 @@ void slave_controller::handleMessage(cMessage *msg)
         switch_message* tempmsg = check_and_cast<switch_message *>(msg);
         int idx = tempmsg->getSource();
         for (int i = 0; i < 20; ++i) {
-            loss[idx][i] = msg->setLoss(i);
-            transmissionDelay[idx][i] = msg->setTransmissionDelay(i);
-            queuingDelay[idx][i] = msg->setQueuingDelay(i);
-            availableBandwidth[idx][i] = msg->setAvailableBandwidth(i);
-            totalBandwidth[idx][i] = msg->setTotalBandwidth(i);
+            loss[idx][i] = tempmsg->getLoss(i);
+            transmissionDelay[idx][i] = tempmsg->getTransmissionDelay(i);
+            queuingDelay[idx][i] = tempmsg->getQueuingDelay(i);
+            availableBandwidth[idx][i] = tempmsg->getAvailableBandwidth(i);
+            totalBandwidth[idx][i] = tempmsg->getTotalBandwidth(i);
         }
     } else if (from == "domain") {
         // send back the network condition information
-
+        condition* cond = new condition();
+        copyCondition(cond);
+        msg->addObject(cond);
+        send(msg, "domain");
     }
+}
+
+void slave_controller::copyCondition(condition* cond) {
+    for (int i = 0; i < 20; ++i) {
+            for (int j = 0; j < 20; ++j) {
+                cond->loss[i][j] = loss[i][j];
+                cond->transmissionDelay[i][j] = transmissionDelay[i][j];
+                cond->queuingDelay[i][j] = queuingDelay[i][j];
+                cond->availableBandwidth[i][j] = availableBandwidth[i][j];
+                cond->totalBandwidth[i][j] = totalBandwidth[i][j];
+            }
+        }
 }
 
 cMessage *slave_controller::generateMessage()
