@@ -20,10 +20,9 @@ class slave_controller : public cSimpleModule
     private:
         double loss[20][20], transmissionDelay[20][20], queuingDelay[20][20];
         double availableBandwidth[20][20], totalBandwidth[20][20];
+        int nex[20][20];
 
     protected:
-      virtual cMessage *generateMessage();
-      virtual void forwardMessage(cMessage *msg);
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
       virtual void copyCondition(condition* cond);
@@ -61,7 +60,7 @@ void slave_controller::handleMessage(cMessage *msg)
         condition* cond = new condition();
         copyCondition(cond);
         msg->addObject(cond);
-        send(msg, "domain");
+        send(msg->dup(), "domain");
     }
 }
 
@@ -77,14 +76,5 @@ void slave_controller::copyCondition(condition* cond) {
         }
 }
 
-cMessage *slave_controller::generateMessage()
-{
-
-}
-
-void slave_controller::forwardMessage(cMessage *msg)
-{
-
-}
 
 

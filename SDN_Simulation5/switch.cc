@@ -25,7 +25,7 @@ class sdn_switch : public cSimpleModule
       switch_message *msg_;
       double loss[20], transmissionDelay[20], queuingDelay[20];
       double availableBandwidth[20], totalBandwidth[20];
-      int idx;
+      int idx, nex[20];
 
     protected:
       virtual switch_message *generateMessage(char *a);
@@ -58,7 +58,7 @@ void sdn_switch::initialize()
     for (int i = 0; i < 20; ++i) {
         loss[i] = transmissionDelay[i] = -1;
         queuingDelay[i] = availableBandwidth[i] = -1;
-        totalBandwidth[i] = -1;
+        totalBandwidth[i] = nex[i] = -1;
     }
 
 
@@ -78,13 +78,15 @@ void sdn_switch::initialize()
          }
     }
 
+    cMessage* msg = new cMessage("initialization");
+    scheduleAt(0.0, msg);
 
     // Module 0 sends the first message
     if (getIndex() == 0 && cmp(getName(), "switches")) {
         // Boot the process scheduling the initial message as a self-message.
         cout << "About to send the mssage\n";
         msg_ = generateMessage("msg");
-        scheduleAt(0.0, msg_);
+        scheduleAt(10.0, msg_);
     }
 }
 
@@ -109,11 +111,11 @@ void sdn_switch::handleMessage(cMessage *msg)
 {
     string from =  msg->getSenderModule()->getName();
 
-    condition* cond = new condition();
-    cond->loss[2][1] = 404;
-    msg->addObject(cond);
-    condition* cond_ = (condition* )(msg->getObject(""));
-    EV << "This is the original value: " << cond_->loss[2][1] << endl;
+//    condition* cond = new condition();
+//    cond->loss[2][1] = 404;
+//    msg->addObject(cond);
+//    condition* cond_ = (condition* )(msg->getObject(""));
+//    EV << "This is the original value: " << cond_->loss[2][1] << endl;
 
 
     if (from == "switches") {
@@ -135,6 +137,7 @@ void sdn_switch::handleMessage(cMessage *msg)
                 //EV << newmsg << endl;
                 forwardMessage(msg_);
                 scheduleAt(simTime()+timeout, timeoutEvent);
+
             } else {
                 tempmsg->setSource(getIndex());
                 msg_ = tempmsg;
@@ -148,6 +151,10 @@ void sdn_switch::handleMessage(cMessage *msg)
         } else if (cmp(msg->getName(), "timeoutEvent")) {
             forwardMessage(msg_);
             scheduleAt(simTime()+timeout, timeoutEvent);
+
+        } else if (cmp(msg->getName(), "initialization")) {
+            send(msg->dup(), "domain");
+
         }
     } else {
 
@@ -169,7 +176,7 @@ switch_message *sdn_switch::generateMessage(char *a)
     msg->setSource(src);
     msg->setDestination(dest);
 
-    cout << "About to return the message\n";
+//    cout << "About to return the message\n";
     return msg;
 }
 
@@ -215,6 +222,7 @@ void sdn_switch::forwardMessageToSlave(switch_message *msg) {
     switch_message* copy =  msg->dup();
     send(copy, "slave");
 }
+
 void sdn_switch::recordInformation(switch_message *msg) {
 
     for (int i = 0; i < 20; ++i) {

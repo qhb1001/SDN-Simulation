@@ -239,9 +239,13 @@ EV << "This is the original value: " << cond_->loss[2][1] << endl; // retrieve t
 - from domain to switch
 - from domain to super
 
-The purpose of the first kind message is to ask slave controller to send network condition information to itself. 
+The purpose of the first kind message is to ask slave controller to send network condition information to itself. The message of the second type is about the same with the message on  `slave -> domain` this link. 
+
+#### 2.4 message from super controller
 
 - from super to domain
+
+There are two kinds of message: a) retrieve network information from domain controller b) send optimal route to domain controller
 
 ### 3. Detail 
 
@@ -294,4 +298,10 @@ void sdn_switch::forwardMessage(sdn_message *msg, int to)
     }
 }
 ```
+
+#### 3.5 How many nodes exist in one subnet(domain controller)? 
+
+In other words, which nodes are included under one domain controller? 
+
+During the initialization process, switch node should turn in its connectivity condition to domain controller by `scheduleAt()` function, which will send "initialization" message to `handleMessage` function, and this function will report to domain controller. 
 
