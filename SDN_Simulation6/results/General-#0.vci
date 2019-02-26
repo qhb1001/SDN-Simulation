@@ -1,0 +1,29 @@
+file 828 1551142520                                             
+version 2
+run General-0-20190226-08:54:48-71712
+attr configname General
+attr datetime 20190226-08:54:48
+attr experiment General
+attr inifile omnetpp.ini
+attr iterationvars ""
+attr iterationvarsf ""
+attr measurement ""
+attr network sdn_network
+attr processid 71712
+attr repetition 0
+attr replication #0
+attr resultdir results
+attr runnumber 0
+attr seedset 0
+param sdn_network.switches[*].transmissionDelay "truncnormal(50, 30)"
+param sdn_network.switches[*].queuingDelay "truncnormal(50, 30)"
+param sdn_network.switches[*].loss "truncnormal(0.1, 0.11)"
+param sdn_network.switches[*].availableBandwidth "uniform(1, 101)"
+param sdn_network.switches[*].totalBandwidth "uniform(1, 101)"
+
+vector 0 sdn_network.switches[2] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+0	815 12 50 50 10.8 10.8 1 8 8 8 64
+

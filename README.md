@@ -260,7 +260,7 @@ EV << msg->par("totalBandwidth").doubleValue() << endl; // output the specific v
 
 ***The source code is the most powerful tool to learn omnet++ framework.*** 
 
-#### 3.2 How to get the module the message belongs to
+#### 3.2 How to get the module name the message belongs to
 
 ```c++
 msg->getSenderModule()->getName();
@@ -268,7 +268,7 @@ msg->getSenderModule()->getName();
 
 #### 3.3 How to send message from switch to domain controller
 
-it should be noticed that after applied the function `send`, the message being sent will be deleted in memory. So it is necessary to make a copy before send it like this:
+it should be noticed that after applied the function `send`, the message being sent will be deleted in memory. So it is necessary to make a copy before send it like this: 
 
 ```c++
 void sdn_switch::forwardMessageToDomain(switch_message *msg) {
@@ -305,3 +305,95 @@ In other words, which nodes are included under one domain controller?
 
 During the initialization process, switch node should turn in its connectivity condition to domain controller by `scheduleAt()` function, which will send "initialization" message to `handleMessage` function, and this function will report to domain controller. 
 
+# Experiment 6 Implement RL Algorithm
+
+## 1. Goal
+
+Implement the Qos-Aware adapative routing algorithm mentioned in [paper](https://ieeexplore.ieee.org/document/7557432). 
+
+## 2. Detail
+
+### 2.1 define some useful variables
+
+```c++
+int src, des;
+int nex[20][20]; // forward table
+int num; // the number of the switches under its control
+bool isIn[20]; // if this switch is under domain controller's control
+bool G[20][20]; // connectivity condition
+
+// RL algorithm
+bool visit[20][20];
+double Q[20][20][20][20], epsilon = 0.1;
+double beta1 = 1, beta2 = 1, beta3 = 1, theta1 = 1, phi1 = 1;
+double theta2 = 0.5, phi2 = 0.5;
+double alpha = 0.9, gamma = 0.7;
+```
+
+There are two new variables `isIn[]` and `G[][]`. Since domain controller and super controller both need to run the algorithm, they all need these two variables. As for the initialization of these viariables, I put them together with other network condtion variables like `loss[][]`. 
+
+### 2.2 modify modules in previous experiment
+
+#### switch
+
+delete the `initliazation` message and merge the connectivity condition into `recordCondition()` function which will be sent to salve controller. 
+
+#### slave controller
+
+merge them into the `copyCondition()` function .
+
+Fix one bug: after receiving message from domain controller, we should generate a new message rather than just send its copy back. 
+
+#### domain controller
+
+modify `retrieveInformation` function to update the `G[][]` variable and implement one little function called `getIsIn()` to get the variable `isIn[]` by `G[][]`.
+
+### 2.3 implement softmax in C++
+
+The original formula is listed below:
+$$
+\tau_n = -\frac{(\tau_0 - \tau_T)n}{T} + \tau_0, \ \ \ n\le T
+$$
+And it's kind of tricky to implement 
+
+```c++
+int domain_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
+    /*
+     *  make softmax policy
+     *
+     *  Args:
+     *      current statement
+     *      map of "action -> reward"
+     *
+     *  Returns:
+     *      the next hop
+     */
+
+    vector<Node> vec; // record the information of the surrounding nodes
+    for (int i = 0; i < 20; ++i) if (isIn[i] && G[state][i])  vec.push_back(Node(i, q[i]));
+    int len = vec.size();
+
+    long double tauN = getTau();
+    long double sum = 0;
+    for (int i = 0; i < len; ++i) {
+        vec[i].val = exp(vec[i].val / tauN);
+        sum += vec[i].val;
+    }
+
+    for (int i = 0; i < len; ++i)
+        vec[i].val /= sum;
+
+    sort(vec.begin(), vec.end());
+    long double chance = uniform(0, 1);
+    for (int i = 0; i < len; ++i) {
+        if (chance <= vec[i].val) return vec[i].idx;
+        else chance -= vec[i].val;
+    }
+}
+```
+
+## 3. Todo
+
+send the route plan to junior nodes
+
+send packets according to the route plan
