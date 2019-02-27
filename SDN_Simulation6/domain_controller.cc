@@ -16,6 +16,7 @@
 #include <math.h>
 #include <vector>
 #include <algorithm>
+#include <route.h>
 #include "switch_message_m.h"
 
 using namespace omnetpp;
@@ -28,30 +29,32 @@ class domain_controller : public cSimpleModule
         double availableBandwidth[20][20], totalBandwidth[20][20];
         int get; // the number of slave controller that has send network condition
         int src, des;
-        int nex[20][20][20]; // forward table
+        int nex[20][20]; // forward table
         int num; // the number of the switches under its control
         bool isIn[20]; // if this switch is under domain controller's control
         bool G[20][20]; // connectivity condition
 
         // RL algorithm
         int visit[20][20];
-        double Q[20][20][20][20], epsilon = 0.1, tau0 = 100, tauT = 0.05, T = 100;
+        double Q[20][20][20], epsilon = 0.1, tau0 = 100, tauT = 0.05, T = 100;
         double beta1 = 1, beta2 = 1, beta3 = 1, theta1 = 1, phi1 = 1;
         double theta2 = 0.5, phi2 = 0.5;
         double alpha = 0.9, gamma = 0.7;
         double pi = cos(-1.0);
 
     protected:
+      virtual void getIsIn();
+      virtual double getTau();
+      virtual double getReward();
       virtual void forwardMessageToSlave();
+      virtual void forwardMessageToSwitch();
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
       virtual void copyCondition(condition* cond);
       virtual void retrieveCondition(cMessage* msg);
-      virtual void getIsIn();
+      virtual void forwardMessage(int to, int nextHop);
       virtual int makeSoftmaxPolicy(int state, double (& q)[20]);
       virtual void sarsa(double (& q)[20][20]);
-      virtual double getTau();
-      virtual double getReward();
 };
 
 Define_Module(domain_controller);
@@ -157,7 +160,7 @@ void domain_controller::sarsa(double (& q)[20][20]) {
     action = makeSoftmaxPolicy(nowState, q[nowState]);
     double reward;
     while (true) {
-        nex[src][des][state] = action;
+        nex[state][des] = action;
         nextState = action;
         nextAction = makeSoftmaxPolicy(nextState, q[nextState]);
 
@@ -199,6 +202,36 @@ void domain_controller::initialize()
     }
 }
 
+void  domain_controller::forwardMessage(int to, int nextHop)
+{
+    for (cModule::GateIterator i(this); !i.end(); i++)
+    {
+         cGate *gate = i();
+         std::string gateStr = gate->getName();
+         if (gateStr == "gate$o" && gate->getPathEndGate()->getOwnerModule()->getIndex() == to)
+         {
+             int senderId = gate->getIndex();
+             cMessage* msg = new cMessage("update"); // update the forward table
+             msg->addPar("hop")->setLongValue(nextHop);
+             msg->addPar("des")->setLongValue(des);
+             send(msg->dup(), "gate$o", senderId);
+         }
+    }
+}
+
+void domain_controller::forwardMessageToSwtich() {
+    int now = src;
+    while (now != des) {
+        forwardMessage(now, nex[now][des]);
+        now = nex[now][des];
+    }
+
+    // inform the source node to send the message according to the route plan
+    cMessage* msg = new cMessage("send");
+    forwaedMessage(src, 0);
+}
+
+
 // this part will be updated later
 void domain_controller::handleMessage(cMessage *msg)
 {
@@ -220,10 +253,10 @@ void domain_controller::handleMessage(cMessage *msg)
             get = 0;
             if (isIn[src] && isIn[des]) {
                 // perform RL algorithm or push the message to super controller
-                sarsa(q[src][des]);
+                sarsa(Q[des]);
 
                 //send route plan to switch
-
+                forwardMessageToSwitch();
 
             } else {
                 // otherwise, send this request to super controller
@@ -237,11 +270,24 @@ void domain_controller::handleMessage(cMessage *msg)
         }
 
     } else if (from == "super") {
-        cMessage* msg_ = new cMessage("retrieve");
-        condition* cond = new condition();
-        copyCondition(cond);
-        msg_->addObject(cond);
-        send(msg_->dup(), "super");
+
+        if (name == "request") {
+            cMessage* msg_ = new cMessage("retrieve");
+            condition* cond = new condition();
+            copyCondition(cond);
+            msg_->addObject(cond);
+            send(msg_->dup(), "super");
+
+        } else if (name == "update") {
+            Route* route = (Route*) msg->getObject("");
+            for (int i = 0; i < 20; ++i)
+                for (int j = 0; j < 20; ++j)
+                    nex[i][j] = route->nex[i][j];
+
+            //send route plan to switch
+            forwardMessageToSwitch();
+        }
+
     }
 }
 

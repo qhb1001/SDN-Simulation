@@ -60,6 +60,7 @@ void slave_controller::handleMessage(cMessage *msg)
             totalBandwidth[idx][i] = tempmsg->getTotalBandwidth(i);
             G[idx][i] = cond->G[idx][i];
         }
+
     } else if (from == "domain") {
         // send back the network condition information
         condition* cond = new condition();

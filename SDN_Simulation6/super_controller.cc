@@ -21,19 +21,20 @@ class super_controller : public cSimpleModule
     public:
         double loss[20][20], transmissionDelay[20][20], queuingDelay[20][20];
         double availableBandwidth[20][20], totalBandwidth[20][20];
-        int src, des, nex[20][20][20], get;
+        int src, des, nex[20][20], get;
         bool G[20][20];
 
 
         // RL algorithm
         int visit[20][20];
-        double Q[20][20][20][20], epsilon = 0.1;
+        double Q[20][20][20], epsilon = 0.1;
         double beta1 = 1, beta2 = 1, beta3 = 1, theta1 = 1, phi1 = 1;
         double theta2 = 0.5, phi2 = 0.5;
         double alpha = 0.9, gamma = 0.7;
 
     protected:
       virtual void forwardMessageToDomain();
+      virtual void updateRouteOfDomain();
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
       virtual void retrieveCondition(cMessage* msg);
@@ -168,6 +169,18 @@ void super_controller::initialize()
     get = 0;
 }
 
+void super_controller::updateRouteOfDomain() {
+    cMessage* msg = new cMessage("update");
+    Route* route = new Route();
+    for (int i = 0; i < 20; ++i)
+        for (int j = 0; j < 20; ++j)
+            route->nex[i][j] = nex[i][j];
+
+    msg->addObject(route);
+    send(msg->dup(), "domain$o", 0);
+    send(msg->dup(), "domain$o", 1);
+}
+
 // this part will be updated later
 void super_controller::handleMessage(cMessage *msg)
 {
@@ -180,11 +193,10 @@ void super_controller::handleMessage(cMessage *msg)
         if (get == 2) {
             get = 0;
             // perform the algorithm
-            sarsa(q[src][des]);
+            sarsa(Q[des]);
 
             // send route plan to domain controller
-
-
+            updateRouteOfDomain();
         }
     } else if (name == "request") {
         // get source and destination information
@@ -200,7 +212,7 @@ void super_controller::handleMessage(cMessage *msg)
 
 void super_controller::forwardMessageToDomain()
 {
-    cMessage* msg = new cMessage();
+    cMessage* msg = new cMessage("request");
     send(msg->dup(), "domain$o", 0);
     send(msg->dup(), "domain$o", 1);
 }
