@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <route.h>
 #include <condition.h>
+#include <node.h>
 #include "switch_message_m.h"
 
 using namespace omnetpp;
@@ -33,7 +34,7 @@ class super_controller : public cSimpleModule
         double beta1 = 1, beta2 = 1, beta3 = 1, theta1 = 1, phi1 = 1;
         double theta2 = 0.5, phi2 = 0.5;
         double alpha = 0.9, gamma = 0.7;
-        double pi = cos(-1.0);
+        double pi = acos(-1.0);
 
     protected:
       virtual void forwardMessageToDomain();
@@ -49,17 +50,6 @@ class super_controller : public cSimpleModule
 
 Define_Module(super_controller);
 
-struct Node {
-    int idx;
-    double val;
-    Node(int a = 0, double b = 0) {
-        idx = a;
-        val = b;
-    }
-    bool operator < (const Node b) const {
-        return val > b.val;
-    }
-};
 
 double  super_controller::getTau() {
 //    cout << tau0 << ' ' << tauT << ' ' << visit[src][des] << ' ' << T << endl;
@@ -79,7 +69,7 @@ bool cmp(Node* a, Node* b) {
     return a->val > b->val;
 }
 
-int turn = 1;
+//int turn = 1;
 int super_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
     /*
      *  make epsilon greedy policy
@@ -91,7 +81,7 @@ int super_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
      *  Returns:
      *      the next hop
      */
-    printf("************Round: %d **************\n", turn++);
+//    printf("************Round: %d **************\n", turn++);
     cout << "in the softmax policy\n";
     vector<Node*> vec; // record the id of the surrounding nodes
 
@@ -105,7 +95,7 @@ int super_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
     double tauN = getTau();
     double sum = 0;
     for (int i = 0; i < len; ++i) {
-        printf("This is val: %f, tauN: %f\n", vec[i]->val, tauN);
+//        printf("This is val: %f, tauN: %f\n", vec[i]->val, tauN);
         vec[i]->val = exp(vec[i]->val / tauN);
         sum += exp(vec[i]->val / tauN);
     }
@@ -118,14 +108,14 @@ int super_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
 
     double chance = uniform(0, 1);
     for (int i = 0; i < len; ++i) {
-        printf("chance: %f, vec[%d].val: %f\n", chance, i, vec[i]->val);
+//        printf("chance: %f, vec[%d].val: %f\n", chance, i, vec[i]->val);
         if (chance <= vec[i]->val) {
-            printf("***********end of softmax************\n");
+            printf("***********end of softmax************\n\n");
             return vec[i]->idx;
         }
         else chance -= vec[i]->val;
     }
-    printf("***********end of softmax************\n");
+    printf("***********end of softmax************\n\n");
     return vec[len - 1]->idx;
 }
 
@@ -143,29 +133,29 @@ double super_controller::getReward(int state, int nextState) {
     }
 
     // cost: delay
-    double delay = 2 * atan(transmissionDelay[state][nextState] - totalTransmissionDelay / n) / pi;
-
-    cout << "delay: " << delay << endl;
+    double delay = (2 * atan(transmissionDelay[state][nextState] - totalTransmissionDelay / n)) / pi;
+//    cout << "atan: " << atan(transmissionDelay[state][nextState] - totalTransmissionDelay / n) << endl;
+//    cout << "delay: " << delay << endl;
 
     // cost: queue
-    double queue = 2 * atan(queuingDelay[state][nextState] - totalQueuingDelay / n) / pi;
+    double queue = (2 * atan(queuingDelay[state][nextState] - totalQueuingDelay / n)) / pi;
 
-    cout << "queue: " << queue << endl;
+//    cout << "queue: " << queue << endl;
 
     // cost: loss
     double los = 1 - 2 * loss[state][nextState];
 
-    cout << "loss: " << los << endl;
+//    cout << "loss: " << los << endl;
 
     // cost: B1
     double B1 = 2 * availableBandwidth[state][nextState] / totalBandwidth[state][nextState];
 
-    cout << "B1: " << B1 << endl;
+//    cout << "B1: " << B1 << endl;
 
     // cost: B2
     double B2 = 2 * atan(0.01 * (availableBandwidth[state][nextState] - totalAvailableBandwidth / n)) / pi;
 
-    cout << "B2: " << B2 << endl;
+//    cout << "B2: " << B2 << endl;
 
 
     return -3 + beta1 * (theta1 * delay + theta2 * queue) + beta2 * los + beta3 * (phi1 * B1 + phi2 * B2);
@@ -206,16 +196,18 @@ void super_controller::sarsa(double (& q)[20][20]) {
         nextAction = makeSoftmaxPolicy(nextState, q[nextState]);
 
         reward = getReward(state, action);
-        printf("This is reward: %f\n", reward);
 
         q[state][action] += alpha * (reward + gamma * q[nextState][nextAction] - q[state][action]);
-        printf("This is q[%d][%d]: %f\n", state, action, q[state][action]);
+        printf("Hop from %d to %d\n", state, action);
 
-        if (nextState == des) break;
+        if (nextState == des) {
+            cout << "***********************" << endl;
+//            turn = 0;
+            break;
+        }
         action = nextAction;
         state = nextState;
 
-        if (x >= 100) return ;
     }
 }
 

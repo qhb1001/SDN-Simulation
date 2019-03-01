@@ -51,20 +51,29 @@ void slave_controller::handleMessage(cMessage *msg)
     if (from == "switches") {
         switch_message* tempmsg = check_and_cast<switch_message *>(msg);
         int idx = tempmsg->getSource();
-        condition* cond = (condition*) msg->getObject("");
+        condition* cond = (condition*) tempmsg->getObject("");
+
+        if (idx == 0 && getIndex() == 0) printf("%d %d cond->transmissionDelay[0][1]: %f\n", idx, getIndex(), cond->transmissionDelay[0][1]);
 
         for (int i = 0; i < 20; ++i) {
-            if (loss[idx][i] == -1) loss[idx][i] = tempmsg->getLoss(i);
-            if (transmissionDelay[idx][i] == -1) transmissionDelay[idx][i] = tempmsg->getTransmissionDelay(i);
-            if (queuingDelay[idx][i] == -1) queuingDelay[idx][i] = tempmsg->getQueuingDelay(i);
-            if (availableBandwidth[idx][i] == -1) availableBandwidth[idx][i] = tempmsg->getAvailableBandwidth(i);
-            if (totalBandwidth[idx][i] == -1) totalBandwidth[idx][i] = tempmsg->getTotalBandwidth(i);
+            if (loss[idx][i] <= 0) loss[idx][i] = cond->loss[idx][i];
+            if (transmissionDelay[idx][i] <= 0) transmissionDelay[idx][i] = cond->transmissionDelay[idx][i];
+            if (queuingDelay[idx][i] <= 0) queuingDelay[idx][i] = cond->queuingDelay[idx][i];
+            if (availableBandwidth[idx][i] <= 0) availableBandwidth[idx][i] = cond->availableBandwidth[idx][i];
+            if (totalBandwidth[idx][i] <= 0) totalBandwidth[idx][i] = cond->totalBandwidth[idx][i];
             if (G[idx][i] == 0) G[idx][i] = cond->G[idx][i];
         }
+
+        if (idx == 0 && getIndex() == 0) printf("%d %d transmissionDelay[0][1]: %f\n", idx, getIndex(), transmissionDelay[0][1]);
+
 
     } else if (from == "domain") {
         // send back the network condition information
         cout << "slave send message to domain\n";
+
+//        if (getIndex() == 0) printf("This is transmissionDelay[0][1]: %f\n", transmissionDelay[0][1]);
+
+
         condition* cond = new condition();
         copyCondition(cond);
         cMessage* msg_ = new cMessage();

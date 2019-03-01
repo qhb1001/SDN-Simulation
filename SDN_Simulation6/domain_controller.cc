@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <route.h>
 #include "switch_message_m.h"
+#include <node.h>
 
 using namespace omnetpp;
 using namespace std;
@@ -41,7 +42,7 @@ class domain_controller : public cSimpleModule
         double beta1 = 1, beta2 = 1, beta3 = 1, theta1 = 1, phi1 = 1;
         double theta2 = 0.5, phi2 = 0.5;
         double alpha = 0.9, gamma = 0.7;
-        double pi = cos(-1.0);
+        double pi = acos(-1.0);
 
     protected:
       virtual void getIsIn();
@@ -65,19 +66,13 @@ long double domain_controller::getTau() {
     return -((tau0 - tauT) * visit[src][des]) / T + tau0;
 }
 
-struct Node {
-    int idx;
-    long double val;
-    Node(int a = 0, long double b = 0) {
-        idx = a;
-        val = b;
+namespace temp{
+    bool cmp(Node* a, Node* b) {
+        return a->val > b->val;
     }
-    bool operator <  (const Node b) const {
-        return val > b.val;
-    }
-};
+}
 
-
+//int turn = 0;
 int domain_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
     /*
      *  make epsilon greedy policy
@@ -89,31 +84,43 @@ int domain_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
      *  Returns:
      *      the next hop
      */
+//    printf("************Round: %d **************\n", turn++);
+    cout << "in the softmax policy\n";
+    vector<Node*> vec; // record the id of the surrounding nodes
 
-    vector<Node> vec; // record the id of the surrounding nodes
-    for (int i = 0; i < 20; ++i) if (isIn[i] && G[state][i])  vec.push_back(Node(i, q[i]));
+    for (int i = 0; i < 20; ++i) if (G[state][i])   vec.push_back(new Node(i, q[i]));
+
+
     int len = vec.size();
 
-    cout << "node " << state << " has neighboor: ";
-    for (int i = 0; i < len; ++i)  cout << vec[i].idx << ' ';
-    cout << endl;
-
-    long double tauN = getTau();
-    long double sum = 0;
+    double tauN = getTau();
+    double sum = 0;
     for (int i = 0; i < len; ++i) {
-        vec[i].val = exp(vec[i].val / tauN);
-        sum += vec[i].val;
+//        printf("This is val: %f, tauN: %f\n", vec[i]->val, tauN);
+        vec[i]->val = exp(vec[i]->val / tauN);
+        sum += exp(vec[i]->val / tauN);
     }
 
     for (int i = 0; i < len; ++i)
-        vec[i].val /= sum;
+        vec[i]->val /= sum;
+    {
 
-    sort(vec.begin(), vec.end());
-    long double chance = uniform(0, 1);
-    for (int i = 0; i < len; ++i) {
-        if (chance <= vec[i].val) return vec[i].idx;
-        else chance -= vec[i].val;
+        sort(vec.begin(), vec.end(), temp::cmp);
+
     }
+
+
+    double chance = uniform(0, 1);
+    for (int i = 0; i < len; ++i) {
+//        printf("chance: %f, vec[%d].val: %f\n", chance, i, vec[i]->val);
+        if (chance <= vec[i]->val) {
+//            printf("***********end of softmax************\n\n");
+            return vec[i]->idx;
+        }
+        else chance -= vec[i]->val;
+    }
+//    printf("***********end of softmax************\n\n");
+    return vec[len - 1]->idx;
 }
 
 
@@ -235,7 +242,7 @@ void  domain_controller::forwardMessage(int to, int nextHop)
 void domain_controller::forwardMessageToSwitch() {
     int now = src;
     while (now != des) {
-        forwardMessage(now, nex[now][des]);
+        if (isIn[now])  forwardMessage(now, nex[now][des]);
         now = nex[now][des];
     }
 
@@ -276,6 +283,9 @@ void domain_controller::handleMessage(cMessage *msg)
 
             } else {
                 // otherwise, send this request to super controller
+
+//               printf("This is transmissionDelay[0][1]: %f\n", transmissionDelay[0][1]);
+
                 if (turnIn) {
                     turnIn = false;
                     switch_message* msg_ = new switch_message("turn in");

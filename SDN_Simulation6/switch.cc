@@ -23,8 +23,8 @@ class sdn_switch : public cSimpleModule
       simtime_t timeout;  // timeout
       cMessage *timeoutEvent;  // holds pointer to the timeout self-message
       switch_message *msg_;
-      double loss[20], transmissionDelay[20], queuingDelay[20];
-      double availableBandwidth[20], totalBandwidth[20];
+      double loss[20][20], transmissionDelay[20][20], queuingDelay[20][20];
+      double availableBandwidth[20][20], totalBandwidth[20][20];
       int nex[20]; // nex[des]: the next hop if the destination of the packet is 'des'
       int idx;
       bool G[20][20];
@@ -50,20 +50,13 @@ switch_message* sdn_switch::initializationMessage() {
 
     for (int i = 0; i < 20; ++i) {
         for (int j = 0; j < 20; ++j) {
-            cond->loss[i][j] = cond->transmissionDelay[i][j] = -1;
-            cond->queuingDelay[i][j] = cond->availableBandwidth[i][j] = -1;
-            cond->totalBandwidth[i][j] = -1;
-            cond->G[i][j] = 0;
+            cond->loss[i][j] = loss[i][j];
+            cond->transmissionDelay[i][j] = transmissionDelay[i][j];
+            cond->queuingDelay[i][j] = queuingDelay[i][j];
+            cond->availableBandwidth[i][j] = availableBandwidth[i][j];
+            cond->totalBandwidth[i][j] = totalBandwidth[i][j];
+            cond->G[i][j] = G[i][j];
         }
-    }
-
-    for (int i = 0; i < 20; ++i) {
-        cond->loss[idx][i] = loss[i];
-        cond->transmissionDelay[idx][i] = transmissionDelay[i];
-        cond->queuingDelay[idx][i] = queuingDelay[i];
-        cond->availableBandwidth[idx][i] = availableBandwidth[i];
-        cond->totalBandwidth[idx][i] = totalBandwidth[i];
-        cond->G[idx][i] = G[idx][i];
     }
 
     msg->addObject(cond);
@@ -79,10 +72,11 @@ void sdn_switch::initialize()
     arrivalSignal = registerSignal("arrival");
     idx = getIndex();
 
-    for (int i = 0; i < 20; ++i) {
-        loss[i] = transmissionDelay[i] = -1;
-        queuingDelay[i] = availableBandwidth[i] = -1;
-        totalBandwidth[i] = nex[i] = -1;
+    for (int i = 0; i < 20; ++i)
+        for (int j = 0; j < 20; ++j) {
+        loss[i][j] = transmissionDelay[i][j] = -1;
+        queuingDelay[i][j] = availableBandwidth[i][j] = -1;
+        totalBandwidth[i][j] = nex[i] = -1;
     }
 
     memset(G, 0, sizeof(G));
@@ -96,12 +90,12 @@ void sdn_switch::initialize()
              int to = gate->getPathEndGate()->getOwnerModule()->getIndex();
              G[idx][to] = 1;
              cout << to << ' ';
-             loss[to] = par("loss");
-             transmissionDelay[to] = par("transmissionDelay");
-             queuingDelay[to] = par("queuingDelay");
-             availableBandwidth[to] = par("availableBandwidth");
-             totalBandwidth[to] = par("totalBandwidth");
-             while (totalBandwidth[to] < availableBandwidth[to])   totalBandwidth[to] = par("totalBandwidth");
+             loss[idx][to] = par("loss");
+             transmissionDelay[idx][to] = par("transmissionDelay");
+             queuingDelay[idx][to] = par("queuingDelay");
+             availableBandwidth[idx][to] = par("availableBandwidth");
+             totalBandwidth[idx][to] = par("totalBandwidth");
+             while (totalBandwidth[idx][to] < availableBandwidth[idx][to])   totalBandwidth[idx][to] = par("totalBandwidth");
          }
     }
     cout << endl;
@@ -135,6 +129,7 @@ void sdn_switch::handleMessage(cMessage *msg)
 
         if (name == "msg") {
             switch_message* tempmsg = check_and_cast<switch_message *>(msg);
+            tempmsg->setSource(getIndex());
             recordInformation(tempmsg);
             forwardMessageToSlave(tempmsg);
 
@@ -217,6 +212,8 @@ void sdn_switch::forwardMessageToDomain(switch_message *msg) {
 }
 
 void sdn_switch::forwardMessageToSlave(switch_message *msg) {
+    if (getIndex() == 0) printf("transmissionDelay[0][1]: %f\n", ((condition*)msg->getObject(""))->transmissionDelay[0][1]);
+
     switch_message* copy =  msg->dup();
     send(copy, "slave");
 }
@@ -226,12 +223,14 @@ void sdn_switch::recordInformation(switch_message *msg) {
     condition* cond = new condition();
 
     for (int i = 0; i < 20; ++i) {
-        msg->setLoss(i, loss[i]);
-        msg->setTransmissionDelay(i, transmissionDelay[i]);
-        msg->setQueuingDelay(i, queuingDelay[i]);
-        msg->setAvailableBandwidth(i, availableBandwidth[i]);
-        msg->setTotalBandwidth(i, totalBandwidth[i]);
-        cond->G[idx][i] = G[idx][i];
+        for (int j = 0; j < 20; ++j) {
+            cond->loss[i][j] = loss[i][j];
+            cond->transmissionDelay[i][j] = transmissionDelay[i][j];
+            cond->queuingDelay[i][j] = queuingDelay[i][j];
+            cond->availableBandwidth[i][j] = availableBandwidth[i][j];
+            cond->totalBandwidth[i][j] = totalBandwidth[i][j];
+            cond->G[i][j] = G[i][j];
+        }
     }
 
     msg->addObject(cond);
