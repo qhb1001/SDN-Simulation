@@ -47,27 +47,29 @@ void slave_controller::initialize()
 void slave_controller::handleMessage(cMessage *msg)
 {
     string from = msg->getSenderModule()->getName();
+
     if (from == "switches") {
         switch_message* tempmsg = check_and_cast<switch_message *>(msg);
         int idx = tempmsg->getSource();
         condition* cond = (condition*) msg->getObject("");
 
         for (int i = 0; i < 20; ++i) {
-            loss[idx][i] = tempmsg->getLoss(i);
-            transmissionDelay[idx][i] = tempmsg->getTransmissionDelay(i);
-            queuingDelay[idx][i] = tempmsg->getQueuingDelay(i);
-            availableBandwidth[idx][i] = tempmsg->getAvailableBandwidth(i);
-            totalBandwidth[idx][i] = tempmsg->getTotalBandwidth(i);
-            G[idx][i] = cond->G[idx][i];
+            if (loss[idx][i] == -1) loss[idx][i] = tempmsg->getLoss(i);
+            if (transmissionDelay[idx][i] == -1) transmissionDelay[idx][i] = tempmsg->getTransmissionDelay(i);
+            if (queuingDelay[idx][i] == -1) queuingDelay[idx][i] = tempmsg->getQueuingDelay(i);
+            if (availableBandwidth[idx][i] == -1) availableBandwidth[idx][i] = tempmsg->getAvailableBandwidth(i);
+            if (totalBandwidth[idx][i] == -1) totalBandwidth[idx][i] = tempmsg->getTotalBandwidth(i);
+            if (G[idx][i] == 0) G[idx][i] = cond->G[idx][i];
         }
 
     } else if (from == "domain") {
         // send back the network condition information
+        cout << "slave send message to domain\n";
         condition* cond = new condition();
         copyCondition(cond);
         cMessage* msg_ = new cMessage();
-        msg_->addObject(msg_);
-        send(msg_->dup(), "domain");
+        msg_->addObject(cond);
+        send(msg_->dup(), "domain$o");
     }
 }
 

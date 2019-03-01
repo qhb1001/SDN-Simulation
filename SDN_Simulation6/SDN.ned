@@ -49,7 +49,7 @@ simple domain_controller
 		
 	gates:
 	    inout slave[];
-	    inout super[];
+	    inout super;
 	    input gate[]; // to interaction with switch node 
 }
 
@@ -60,7 +60,7 @@ simple super_controller
 		
 	
 	gates:
-	    inout gate[];
+	    inout domain[];
 }
 
 network sdn_network 
@@ -83,6 +83,7 @@ network sdn_network
 	    //SDN switches
 	    switches[0].gate++ <--> Channel <--> switches[1].gate++;
 	    switches[0].gate++ <--> Channel <--> switches[3].gate++;
+	    switches[0].gate++ <--> Channel <--> switches[2].gate++;
 	    switches[3].gate++ <--> Channel <--> switches[2].gate++;
 	    switches[3].gate++ <--> Channel <--> switches[4].gate++;
 	    switches[3].gate++ <--> Channel <--> switches[5].gate++;
@@ -126,7 +127,7 @@ network sdn_network
 	    
 	    // super controller
 	    for i = 0..1 {
-	    	super.gate++ <--> Channel <--> domain[i].super++;
+	    	super.domain++ <--> Channel <--> domain[i].super;
 	    }
 }
 

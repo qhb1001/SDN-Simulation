@@ -503,3 +503,16 @@ class domain_controller : public cSimpleModule
 };
 ```
 
+### 2.6 Hot-start 
+
+All the nodes should turn in its surrounding network condition to the senior node, otherwise this algorithm just can't start. According to my framework, the switch node must turn in the network condition to slave controller. 
+
+Actually, it is better to record one time stamp for every variable in network condition, so as to know whether or not to update the variable based on the coming data. 
+
+## 3. Problem 
+
+### 3.1 pointer being freed was not allocated
+
+The original error information is :`[malloc: *** error for object: pointer being freed was not allocated *** set a breakpoint in malloc_error_break to debug]`
+
+After exploring many answers in StackOverflow, I come to the fact that the parameter of the default constructor is not matched with the parameter I give to, which result this error. After fixing that, it works. 

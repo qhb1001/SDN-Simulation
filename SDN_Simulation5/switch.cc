@@ -37,6 +37,7 @@ class sdn_switch : public cSimpleModule
       virtual void handleMessage(cMessage *msg) override;
       virtual void sendACK(switch_message *msg);
       virtual void recordInformation(switch_message *msg);
+      virtual void initializationMessage();
 };
 
 Define_Module(sdn_switch);

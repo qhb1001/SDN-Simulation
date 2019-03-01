@@ -33,6 +33,7 @@ class domain_controller : public cSimpleModule
         int num; // the number of the switches under its control
         bool isIn[20]; // if this switch is under domain controller's control
         bool G[20][20]; // connectivity condition
+        bool turnIn;
 
         // RL algorithm
         int visit[20][20];
@@ -44,9 +45,9 @@ class domain_controller : public cSimpleModule
 
     protected:
       virtual void getIsIn();
-      virtual double getTau();
-      virtual double getReward();
-      virtual void forwardMessageToSlave();
+      virtual long double getTau();
+      virtual double getReward(int state, int nextState);
+      virtual void forwardMessageToSlave(cMessage* msg);
       virtual void forwardMessageToSwitch();
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
@@ -60,7 +61,7 @@ class domain_controller : public cSimpleModule
 Define_Module(domain_controller);
 
 
-double domain_controller::getTau() {
+long double domain_controller::getTau() {
     return -((tau0 - tauT) * visit[src][des]) / T + tau0;
 }
 
@@ -71,10 +72,12 @@ struct Node {
         idx = a;
         val = b;
     }
-    bool cmp(Node a, Node b) {
-        return a.val > b.val;
+    bool operator <  (const Node b) const {
+        return val > b.val;
     }
 };
+
+
 int domain_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
     /*
      *  make epsilon greedy policy
@@ -90,6 +93,10 @@ int domain_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
     vector<Node> vec; // record the id of the surrounding nodes
     for (int i = 0; i < 20; ++i) if (isIn[i] && G[state][i])  vec.push_back(Node(i, q[i]));
     int len = vec.size();
+
+    cout << "node " << state << " has neighboor: ";
+    for (int i = 0; i < len; ++i)  cout << vec[i].idx << ' ';
+    cout << endl;
 
     long double tauN = getTau();
     long double sum = 0;
@@ -129,7 +136,7 @@ double domain_controller::getReward(int state, int nextState) {
     double queue = 2 * atan(queuingDelay[state][nextState] - totalQueuingDelay / n) / pi;
 
     // cost: loss
-    double loss = 1 - 2 * loss[state][nextState];
+    double los = 1 - 2 * loss[state][nextState];
 
     // cost: B1
     double B1 = 2 * availableBandwidth[state][nextState] / totalBandwidth[state][nextState];
@@ -138,7 +145,7 @@ double domain_controller::getReward(int state, int nextState) {
     double B2 = 2 * atan(0.01 * (availableBandwidth[state][nextState] - totalAvailableBandwidth / n)) / pi;
 
 
-    return -3 + beta1 * (theta1 * delay + theta2 * queue) + beta2 * loss + beta3 * (phi1 * B1 + phi2 * B2);
+    return -3 + beta1 * (theta1 * delay + theta2 * queue) + beta2 * los + beta3 * (phi1 * B1 + phi2 * B2);
 
 }
 
@@ -157,9 +164,14 @@ void domain_controller::sarsa(double (& q)[20][20]) {
     if (visit[src][des] == 101) visit[src][des] = 1;
 
     int state = src, action, nextState, nextAction;
-    action = makeSoftmaxPolicy(nowState, q[nowState]);
+    action = makeSoftmaxPolicy(state, q[state]);
     double reward;
+
+    int x = 0;
     while (true) {
+
+        if (++x <= 20) cout << "In SARSA, now at: " << state << endl;
+
         nex[state][des] = action;
         nextState = action;
         nextAction = makeSoftmaxPolicy(nextState, q[nextState]);
@@ -167,9 +179,9 @@ void domain_controller::sarsa(double (& q)[20][20]) {
         reward = getReward(state, action);
         q[state][action] += alpha * (reward + gamma * q[nextState][nextAction] - q[state][action]);
 
-        if (nextState = des) break;
+        if (nextState == des) break;
         action = nextAction;
-        state = NextState;
+        state = nextState;
     }
 }
 
@@ -200,6 +212,7 @@ void domain_controller::initialize()
         }
         isIn[i] = 0;
     }
+    get = turnIn = 0;
 }
 
 void  domain_controller::forwardMessage(int to, int nextHop)
@@ -212,14 +225,14 @@ void  domain_controller::forwardMessage(int to, int nextHop)
          {
              int senderId = gate->getIndex();
              cMessage* msg = new cMessage("update"); // update the forward table
-             msg->addPar("hop")->setLongValue(nextHop);
-             msg->addPar("des")->setLongValue(des);
+             msg->addPar("hop").setLongValue(nextHop);
+             msg->addPar("des").setLongValue(des);
              send(msg->dup(), "gate$o", senderId);
          }
     }
 }
 
-void domain_controller::forwardMessageToSwtich() {
+void domain_controller::forwardMessageToSwitch() {
     int now = src;
     while (now != des) {
         forwardMessage(now, nex[now][des]);
@@ -228,8 +241,9 @@ void domain_controller::forwardMessageToSwtich() {
 
     // inform the source node to send the message according to the route plan
     cMessage* msg = new cMessage("send");
-    forwaedMessage(src, 0);
+    forwardMessage(src, 0);
 }
+
 
 
 // this part will be updated later
@@ -239,32 +253,43 @@ void domain_controller::handleMessage(cMessage *msg)
     string name = msg->getName();
 
     if (from == "switches") {
-        switch_message* tempmsg = check_and_cast<switch_message *>(msg);
-        // retrieve network condition from slave controller
-        src = tempmsg->getSource();
-        des = tempmsg->getDestination();
-
-        forwardMessageToSlave();
+//        cout << "domain controller send message to slave\n";
+        turnIn = true;
+        forwardMessageToSlave(msg);
 
     } else if (from == "slave") {
         get++;
+
+        printf("This is domain %d, get: %d\n", getIndex(), get);
         retrieveCondition(msg);
         if (get == 2) { // all network information received
             get = 0;
             if (isIn[src] && isIn[des]) {
+                cout << "domain controller running SARSA. " << src << ' ' << des << endl;
+
                 // perform RL algorithm or push the message to super controller
                 sarsa(Q[des]);
 
                 //send route plan to switch
                 forwardMessageToSwitch();
 
+
             } else {
                 // otherwise, send this request to super controller
-                switch_message* msg_ = new switch_message("request");
-                msg_->setSource(src);
-                msg_->setDestination(des);
+                if (turnIn) {
+                    turnIn = false;
+                    switch_message* msg_ = new switch_message("turn in");
+                    msg_->setSource(src);
+                    msg_->setDestination(des);
 
-                send(msg_->dup(), "super");
+                    send(msg_->dup(), "super$o");
+                } else {
+                    cMessage* mmsg = new cMessage("retrieve");
+                    condition* cond = new condition();
+                    copyCondition(cond);
+                    mmsg->addObject(cond);
+                    send(mmsg, "super$o");
+                }
             }
 
         }
@@ -272,11 +297,8 @@ void domain_controller::handleMessage(cMessage *msg)
     } else if (from == "super") {
 
         if (name == "request") {
-            cMessage* msg_ = new cMessage("retrieve");
-            condition* cond = new condition();
-            copyCondition(cond);
-            msg_->addObject(cond);
-            send(msg_->dup(), "super");
+
+            forwardMessageToSlave(msg);
 
         } else if (name == "update") {
             Route* route = (Route*) msg->getObject("");
@@ -291,9 +313,13 @@ void domain_controller::handleMessage(cMessage *msg)
     }
 }
 
-void domain_controller::forwardMessageToSlave()
+void domain_controller::forwardMessageToSlave(cMessage* msg)
 {
-    cMessage* msg = new cMessage();
+    switch_message* tempmsg = check_and_cast<switch_message *>(msg);
+    // retrieve network condition from slave controller
+    src = tempmsg->getSource();
+    des = tempmsg->getDestination();
+
     send(msg->dup(), "slave$o", 0);
     send(msg->dup(), "slave$o", 1);
 }
@@ -317,12 +343,12 @@ void domain_controller::retrieveCondition(cMessage* msg) {
     condition* cond = (condition*) msg->getObject("");
     for (int i = 0; i < 20; ++i) {
             for (int j = 0; j < 20; ++j) {
-                loss[i][j] = cond->loss[i][j];
-                transmissionDelay[i][j] = cond->transmissionDelay[i][j];
-                queuingDelay[i][j] = cond->queuingDelay[i][j];
-                availableBandwidth[i][j] = cond->availableBandwidth[i][j];
-                totalBandwidth[i][j] = cond->totalBandwidth[i][j];
-                G[i][j] = cond->G[i][j];
+                if (loss[i][j] == -1) loss[i][j] = cond->loss[i][j];
+                if (transmissionDelay[i][j] == -1) transmissionDelay[i][j] = cond->transmissionDelay[i][j];
+                if (queuingDelay[i][j] == -1) queuingDelay[i][j] = cond->queuingDelay[i][j];
+                if (availableBandwidth[i][j] == -1) availableBandwidth[i][j] = cond->availableBandwidth[i][j];
+                if (totalBandwidth[i][j] == -1) totalBandwidth[i][j] = cond->totalBandwidth[i][j];
+                if (G[i][j] == 0) G[i][j] = cond->G[i][j];
             }
         }
 

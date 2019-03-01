@@ -37,9 +37,39 @@ class sdn_switch : public cSimpleModule
       virtual void initialize() override;
       virtual void handleMessage(cMessage *msg) override;
       virtual void recordInformation(switch_message *msg);
+      virtual switch_message* initializationMessage();
 };
 
 Define_Module(sdn_switch);
+
+switch_message* sdn_switch::initializationMessage() {
+    switch_message* msg = new switch_message("ini");
+
+    msg->setSource(getIndex());
+    condition* cond = new condition();
+
+    for (int i = 0; i < 20; ++i) {
+        for (int j = 0; j < 20; ++j) {
+            cond->loss[i][j] = cond->transmissionDelay[i][j] = -1;
+            cond->queuingDelay[i][j] = cond->availableBandwidth[i][j] = -1;
+            cond->totalBandwidth[i][j] = -1;
+            cond->G[i][j] = 0;
+        }
+    }
+
+    for (int i = 0; i < 20; ++i) {
+        cond->loss[idx][i] = loss[i];
+        cond->transmissionDelay[idx][i] = transmissionDelay[i];
+        cond->queuingDelay[idx][i] = queuingDelay[i];
+        cond->availableBandwidth[idx][i] = availableBandwidth[i];
+        cond->totalBandwidth[idx][i] = totalBandwidth[i];
+        cond->G[idx][i] = G[idx][i];
+    }
+
+    msg->addObject(cond);
+
+    return msg;
+}
 
 void sdn_switch::initialize()
 {
@@ -56,7 +86,7 @@ void sdn_switch::initialize()
     }
 
     memset(G, 0, sizeof(G));
-
+    cout << "node " << idx << ": ";
     for (cModule::GateIterator i(this); !i.end(); i++)
     {
          cGate *gate = i();
@@ -65,6 +95,7 @@ void sdn_switch::initialize()
          {
              int to = gate->getPathEndGate()->getOwnerModule()->getIndex();
              G[idx][to] = 1;
+             cout << to << ' ';
              loss[to] = par("loss");
              transmissionDelay[to] = par("transmissionDelay");
              queuingDelay[to] = par("queuingDelay");
@@ -73,14 +104,17 @@ void sdn_switch::initialize()
              while (totalBandwidth[to] < availableBandwidth[to])   totalBandwidth[to] = par("totalBandwidth");
          }
     }
+    cout << endl;
 
+    scheduleAt(0.0, initializationMessage()->dup());
 
+    string name =  getName();
     // Module 0 sends the first message
     if (getIndex() == 0 && name == "switches") {
         // Boot the process scheduling the initial message as a self-message.
         cout << "About to send the mssage\n";
         msg_ = generateMessage("msg");
-        scheduleAt(0.0, msg_);
+        scheduleAt(1.0, msg_);
     }
 }
 
@@ -89,6 +123,12 @@ void sdn_switch::handleMessage(cMessage *msg)
 {
     string from =  msg->getSenderModule()->getName();
     string name = msg->getName();
+
+
+    if (name == "ini") {
+        send(msg->dup(), "slave");
+        return ;
+    }
 
 
     if (from == "switches") {
@@ -107,26 +147,30 @@ void sdn_switch::handleMessage(cMessage *msg)
                 msg_ = generateMessage("msg");
 
                 int des = msg_->getDestination();
-                if (nex[des] != -1) forwardMessageToSwitch(msg_, nex[des]);
+                if (nex[des] != -1) forwardMessageToSwitch(msg_->dup(), nex[des]);
                 else forwardMessageToDomain(msg_);
 
                 scheduleAt(simTime()+timeout, timeoutEvent);
 
             } else {
 //                tempmsg->setSource(getIndex());
-                msg_ = tempmsg;
-                forwardMessage(tempmsg);
-                scheduleAt(simTime()+timeout, timeoutEvent);
+                int des = tempmsg->getDestination();
+                if (nex[des] != -1) forwardMessageToSwitch(tempmsg->dup(), nex[des]);
+                else {
+//                    cout << "No record, sent to domain controller.\n";
+                    forwardMessageToDomain(msg_);
+                }
             }
 
         }
     } else if (from == "domain") {
-        int des = (int) msg->par("des")->longValue();
-        int hop = (int) msg->par("hop")->longValue();
+        int des = (int) msg->par("des").longValue();
+        int hop = (int) msg->par("hop").longValue();
 
         if (name == "update") {
             nex[des] = hop;
         } else if (name == "send") {
+            EV << "Get the message from domain. \n";
             forwardMessageToSwitch(msg_, nex[des]);
         }
 

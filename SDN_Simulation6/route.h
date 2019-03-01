@@ -20,6 +20,7 @@ class Route : public cObject
         // nex[now][des]: stores the next hop if the current state is 'now'
         // and the destination is 'des'
         int nex[20][20];
+        Route *dup() const override  {return new Route(*this);}
 };
 
 
