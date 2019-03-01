@@ -1,15 +1,15 @@
-file 828 1551142520                                             
+file 176241 1551426556                                          
 version 2
-run General-0-20190226-08:54:48-71712
+run General-0-20190301-15:48:59-30667
 attr configname General
-attr datetime 20190226-08:54:48
+attr datetime 20190301-15:48:59
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
 attr iterationvarsf ""
 attr measurement ""
 attr network sdn_network
-attr processid 71712
+attr processid 30667
 attr repetition 0
 attr replication #0
 attr resultdir results
@@ -21,9 +21,69 @@ param sdn_network.switches[*].loss "truncnormal(0.1, 0.11)"
 param sdn_network.switches[*].availableBandwidth "uniform(1, 101)"
 param sdn_network.switches[*].totalBandwidth "uniform(1, 101)"
 
-vector 0 sdn_network.switches[2] hopCount:vector ETV
+vector 0 sdn_network.switches[11] hopCount:vector ETV
 attr interpolationmode none
 attr source arrival
 attr title "hop count, vector"
-0	815 12 50 50 10.8 10.8 1 8 8 8 64
+vector 1 sdn_network.switches[9] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 2 sdn_network.switches[6] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 3 sdn_network.switches[1] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 4 sdn_network.switches[10] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 5 sdn_network.switches[2] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 6 sdn_network.switches[12] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 7 sdn_network.switches[7] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 8 sdn_network.switches[8] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 9 sdn_network.switches[5] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 10 sdn_network.switches[0] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 11 sdn_network.switches[4] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+vector 12 sdn_network.switches[3] hopCount:vector ETV
+attr interpolationmode none
+attr source arrival
+attr title "hop count, vector"
+0	2405 13523 66 71390 2.6 1818.5 837 1 6 2387 8079
+1	15928 13387 75 71312 3.1 1816.6 831 1 7 1899 5727
+2	29315 13298 102 71418 4.3 1819.2 824 1 9 3929 23197
+3	42613 13633 120 71392 5.1 1818.6 847 1 7 3244 14878
+4	56246 12655 168 71360 7.2 1817.8 786 1 5 2542 9834
+5	68901 12530 216 71294 9.3 1816.1 779 1 8 2738 12696
+6	81431 14255 252 71334 10.8 1817.1 885 1 9 4216 25102
+7	95686 13361 264 71282 11.4 1815.8 827 1 4 2142 6342
+8	109047 12492 285 71412 12.3 1819.1 776 1 6 2358 8130
+9	121539 13001 360 70954 15.7 1807.6 806 1 6 2393 8773
+10	134540 14554 375 71388 16.4 1818.5 851 1 7 3474 17838
+11	149094 13502 591 71376 26 1818.2 789 1 5 1849 5493
+12	162596 13644 709 71366 31.4 1817.9 796 1 4 1757 4549
 

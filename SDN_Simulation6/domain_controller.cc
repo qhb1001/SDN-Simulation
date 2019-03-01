@@ -54,7 +54,7 @@ class domain_controller : public cSimpleModule
       virtual void handleMessage(cMessage *msg) override;
       virtual void copyCondition(condition* cond);
       virtual void retrieveCondition(cMessage* msg);
-      virtual void forwardMessage(int to, int nextHop);
+      virtual void forwardMessage(int to, int nextHop, string name);
       virtual int makeSoftmaxPolicy(int state, double (& q)[20]);
       virtual void sarsa(double (& q)[20][20]);
 };
@@ -88,7 +88,7 @@ int domain_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
     cout << "in the softmax policy\n";
     vector<Node*> vec; // record the id of the surrounding nodes
 
-    for (int i = 0; i < 20; ++i) if (G[state][i])   vec.push_back(new Node(i, q[i]));
+    for (int i = 0; i < 20; ++i) if (G[state][i] && isIn[i])   vec.push_back(new Node(i, q[i]));
 
 
     int len = vec.size();
@@ -103,23 +103,21 @@ int domain_controller::makeSoftmaxPolicy(int state, double (& q)[20]) {
 
     for (int i = 0; i < len; ++i)
         vec[i]->val /= sum;
-    {
 
-        sort(vec.begin(), vec.end(), temp::cmp);
 
-    }
+    sort(vec.begin(), vec.end(), temp::cmp);
 
 
     double chance = uniform(0, 1);
     for (int i = 0; i < len; ++i) {
-//        printf("chance: %f, vec[%d].val: %f\n", chance, i, vec[i]->val);
+
         if (chance <= vec[i]->val) {
-//            printf("***********end of softmax************\n\n");
+
             return vec[i]->idx;
         }
         else chance -= vec[i]->val;
     }
-//    printf("***********end of softmax************\n\n");
+
     return vec[len - 1]->idx;
 }
 
@@ -177,8 +175,6 @@ void domain_controller::sarsa(double (& q)[20][20]) {
     int x = 0;
     while (true) {
 
-        if (++x <= 20) cout << "In SARSA, now at: " << state << endl;
-
         nex[state][des] = action;
         nextState = action;
         nextAction = makeSoftmaxPolicy(nextState, q[nextState]);
@@ -186,7 +182,8 @@ void domain_controller::sarsa(double (& q)[20][20]) {
         reward = getReward(state, action);
         q[state][action] += alpha * (reward + gamma * q[nextState][nextAction] - q[state][action]);
 
-        if (nextState == des) break;
+        if (nextState == des)   break;
+
         action = nextAction;
         state = nextState;
     }
@@ -222,7 +219,7 @@ void domain_controller::initialize()
     get = turnIn = 0;
 }
 
-void  domain_controller::forwardMessage(int to, int nextHop)
+void  domain_controller::forwardMessage(int to, int nextHop, string name)
 {
     for (cModule::GateIterator i(this); !i.end(); i++)
     {
@@ -231,7 +228,7 @@ void  domain_controller::forwardMessage(int to, int nextHop)
          if (gateStr == "gate$o" && gate->getPathEndGate()->getOwnerModule()->getIndex() == to)
          {
              int senderId = gate->getIndex();
-             cMessage* msg = new cMessage("update"); // update the forward table
+             cMessage* msg = new cMessage(name.c_str()); // update the forward table
              msg->addPar("hop").setLongValue(nextHop);
              msg->addPar("des").setLongValue(des);
              send(msg->dup(), "gate$o", senderId);
@@ -242,16 +239,19 @@ void  domain_controller::forwardMessage(int to, int nextHop)
 void domain_controller::forwardMessageToSwitch() {
     int now = src;
     while (now != des) {
-        if (isIn[now])  forwardMessage(now, nex[now][des]);
+        if (isIn[now])  {
+//            printf("domain controller %d update nodes %d\n", getIndex(), now);
+            forwardMessage(now, nex[now][des], "update");
+//            printf("done\n");
+        }
         now = nex[now][des];
     }
 
     // inform the source node to send the message according to the route plan
-    cMessage* msg = new cMessage("send");
-    forwardMessage(src, 0);
+    if (isIn[src])
+        forwardMessage(src, 0, "send");
+
 }
-
-
 
 // this part will be updated later
 void domain_controller::handleMessage(cMessage *msg)
@@ -277,10 +277,13 @@ void domain_controller::handleMessage(cMessage *msg)
                 // perform RL algorithm or push the message to super controller
                 sarsa(Q[des]);
 
+                int l = src;
+                EV << "Here is the path: ";
+                while (l != des) {EV << l << ' '; l = nex[l][des];}
+                EV << endl;
+
                 //send route plan to switch
                 forwardMessageToSwitch();
-
-
             } else {
                 // otherwise, send this request to super controller
 
@@ -311,10 +314,13 @@ void domain_controller::handleMessage(cMessage *msg)
             forwardMessageToSlave(msg);
 
         } else if (name == "update") {
+
             Route* route = (Route*) msg->getObject("");
+
+            des = msg->par("des").longValue();
+            src = msg->par("src").longValue();
             for (int i = 0; i < 20; ++i)
-                for (int j = 0; j < 20; ++j)
-                    nex[i][j] = route->nex[i][j];
+                nex[i][des] = route->nex[i][des];
 
             //send route plan to switch
             forwardMessageToSwitch();

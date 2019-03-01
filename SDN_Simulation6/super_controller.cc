@@ -180,7 +180,7 @@ void super_controller::sarsa(double (& q)[20][20]) {
 
     action = makeSoftmaxPolicy(state, q[state]);
 
-    cout << "softmax returns " << action << endl;
+//    cout << "softmax returns " << action << endl;
     double reward;
 
     printf("src: %d  des: %d\n", src, des);
@@ -198,10 +198,10 @@ void super_controller::sarsa(double (& q)[20][20]) {
         reward = getReward(state, action);
 
         q[state][action] += alpha * (reward + gamma * q[nextState][nextAction] - q[state][action]);
-        printf("Hop from %d to %d\n", state, action);
+//        printf("Hop from %d to %d\n", state, action);
 
         if (nextState == des) {
-            cout << "***********************" << endl;
+//            cout << "***********************" << endl;
 //            turn = 0;
             break;
         }
@@ -228,11 +228,14 @@ void super_controller::initialize()
 void super_controller::updateRouteOfDomain() {
     cMessage* msg = new cMessage("update");
     Route* route = new Route();
+
     for (int i = 0; i < 20; ++i)
         for (int j = 0; j < 20; ++j)
             route->nex[i][j] = nex[i][j];
 
     msg->addObject(route);
+    msg->addPar("des").setLongValue(des);
+    msg->addPar("src").setLongValue(src);
     send(msg->dup(), "domain$o", 0);
     send(msg->dup(), "domain$o", 1);
 }
@@ -252,6 +255,11 @@ void super_controller::handleMessage(cMessage *msg)
             // perform the algorithm
             cout << "perform the SARSA\n";
             sarsa(Q[des]);
+
+            int l = src;
+            EV << "Here is the path: ";
+            while (l != des) {EV << l << ' '; l = nex[l][des];}
+            EV << endl;
 
             // send route plan to domain controller
             updateRouteOfDomain();

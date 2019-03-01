@@ -145,7 +145,7 @@ void sdn_switch::handleMessage(cMessage *msg)
                 if (nex[des] != -1) forwardMessageToSwitch(msg_->dup(), nex[des]);
                 else forwardMessageToDomain(msg_);
 
-                scheduleAt(simTime()+timeout, timeoutEvent);
+//                scheduleAt(simTime()+timeout, timeoutEvent);
 
             } else {
 //                tempmsg->setSource(getIndex());
@@ -184,6 +184,9 @@ switch_message *sdn_switch::generateMessage(char *a)
     // Create message object and set source and destination field.
     switch_message *msg = new switch_message(a);
     msg->setDestination(dest);
+    msg->setSource(src);
+
+    EV << "Generate one new message from " << src << " to " << dest << endl;
 
     return msg;
 }
@@ -208,7 +211,7 @@ void sdn_switch::forwardMessageToSwitch(switch_message *msg, int to)
 
 void sdn_switch::forwardMessageToDomain(switch_message *msg) {
     switch_message* copy =  msg->dup();
-    send(copy, "domain");
+    send(copy, "domain$o");
 }
 
 void sdn_switch::forwardMessageToSlave(switch_message *msg) {
