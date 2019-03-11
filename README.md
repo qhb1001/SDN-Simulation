@@ -26,7 +26,7 @@ We can see that in this 12-nodes network, the average hop count of the messages 
 
 
 
-[Here](https://github.com/qhb1001/SDN-Simulation/blob/master/demo.mp4) is the workflow. The initial message has the source 0, and destination 9. You can see that the super controller runs the SARSA for route planning and it sends the control information to domain controller, which in turn updates the forward table in switches. 
+[Here](https://github.com/qhb1001/SDN-Simulation/blob/master/demo.mp4) is the workflow. The initial message has the source 0, and destination 11. You can see that the super controller runs the SARSA for route planning and it sends the control information to domain controller, which in turn updates the forward table in switches. 
 
 # Area to be improved
 
