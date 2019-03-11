@@ -259,7 +259,7 @@ void super_controller::handleMessage(cMessage *msg)
             int l = src;
             EV << "Here is the path: ";
             while (l != des) {EV << l << ' '; l = nex[l][des];}
-            EV << endl;
+            EV << des << endl;
 
             // send route plan to domain controller
             updateRouteOfDomain();
