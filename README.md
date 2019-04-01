@@ -2,7 +2,7 @@
 
 This is my first attempt to reproduce the result in academic paper. The paper "QoS-Aware Adaptive Routing in Multi-layer Hierarchical Software Defined Networks: A Reinforcement Learning Approach" designed one hierarchical SDN architecture, and implemented SARSA algorithm on it. 
 
-I used an incremental development approach, and each experiment was developed based on the previous experiment. And there are notes in every experiment which include the `gole`, `implement detail`, `problem`(the problem I encountered during the development) parts. Experiment 6 is the final result of the project.
+I used an incremental development approach, and each experiment was developed based on the previous experiment. And there are notes in every experiment which include the `goal`, `implement detail`, `problem`(the problem I encountered during the development) parts. Experiment 6 is the final result of the project.
 
 Because there is no open source header files for hierarchical SDN and I didn't find one existing normal SDN framework on omnet++ platform, I implemented the whole SDN framework by myself. 
 
