@@ -29,7 +29,7 @@ There are two new variables `isIn[]` and `G[][]`. Since domain controller and su
 
 #### switch
 
-delete the `initliazation` message and merge the connectivity condition into `recordCondition()` function which will be sent to salve controller. 
+delete the `initialization` message and merge the connectivity condition into `recordCondition()` function which will be sent to salve controller. 
 
 #### slave controller
 
